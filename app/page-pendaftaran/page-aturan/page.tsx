@@ -19,60 +19,91 @@ const PageFormAturan: React.FC = () => {
     router.push("/page-pendaftaran/page-uploadberkas");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const belumIsi = answers
-      .map((ans, i) => (ans === null ? `Pernyataan ${i + 1}` : null))
-      .filter(Boolean);
+  const belumIsi = answers
+    .map((ans, i) => (ans === null ? `Pernyataan ${i + 1}` : null))
+    .filter(Boolean);
 
-    const tidakSetuju = answers
-      .map((ans, i) => (ans === "tidak" ? `Pernyataan ${i + 1}` : null))
-      .filter(Boolean);
+  const tidakSetuju = answers
+    .map((ans, i) => (ans === "tidak" ? `Pernyataan ${i + 1}` : null))
+    .filter(Boolean);
 
-    if (belumIsi.length > 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Belum Semua Pernyataan Disetujui!",
-        html: `
-          <p class="mb-2">Kamu belum memilih jawaban untuk:</p>
-          <ul style="text-align:left; display:inline-block;">
-            ${belumIsi.map((f) => `<li>• ${f}</li>`).join("")}
-          </ul>
-        `,
-        confirmButtonText: "Oke, isi dulu",
-        confirmButtonColor: "#1E3A8A",
-        background: "#f9fafb",
-        color: "#1E293B",
-        showClass: { popup: "animate__animated animate__headShake" },
-      });
-      return;
-    }
+  if (belumIsi.length > 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "Belum Semua Pernyataan Disetujui!",
+      html: `
+        <p class="mb-2">Kamu belum memilih jawaban untuk:</p>
+        <ul style="text-align:left; display:inline-block;">
+          ${belumIsi.map((f) => `<li>• ${f}</li>`).join("")}
+        </ul>
+      `,
+      confirmButtonColor: "#1E3A8A"
+    });
+    return;
+  }
 
-    if (tidakSetuju.length > 0) {
-      Swal.fire({
+  if (tidakSetuju.length > 0) {
+    Swal.fire({
+      icon: "error",
+      title: "Ada Pernyataan yang Tidak Disetujui",
+      text: "Semua pernyataan harus dipilih 'Ya' untuk melanjutkan.",
+      confirmButtonColor: "#1E3A8A"
+    });
+    return;
+  }
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user_id = user?.id;
+
+  if (!user_id) {
+    Swal.fire({
+      icon: "error",
+      title: "User tidak ditemukan!",
+      text: "Silakan login ulang."
+    });
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/pendaftaran/form-aturan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id,
+        pernyataan1: answers[0],
+        pernyataan2: answers[1],
+        pernyataan3: answers[2],
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Swal.fire({
         icon: "error",
-        title: "Ada Pernyataan yang Tidak Disetujui",
-        text: "Semua pernyataan harus disetujui (pilih 'Ya') untuk melanjutkan ke tahap berikutnya.",
-        confirmButtonText: "Oke, saya setujui dulu",
-        confirmButtonColor: "#1E3A8A",
-        background: "#f9fafb",
-        color: "#1E293B",
-        showClass: { popup: "animate__animated animate__shakeX" },
+        title: "Gagal!",
+        text: data.message || "Terjadi kesalahan.",
       });
-      return;
     }
 
     Swal.fire({
       icon: "success",
-      title: "Semua Pernyataan Disetujui ✅",
-      text: "Kamu bisa melanjutkan ke tahap berikutnya.",
-      confirmButtonText: "Lanjutkan",
+      title: "Semua Pernyataan Disetujui!",
       confirmButtonColor: "#1E3A8A",
-      showClass: { popup: "animate__animated animate__fadeInDown" },
-      hideClass: { popup: "animate__animated animate__fadeOutUp" },
     }).then(() => router.push("/page-pendaftaran/page-terimakasih"));
-  };
+
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Kesalahan Server!",
+      text: "Tidak dapat terhubung ke server."
+    });
+  }
+};
+
 
   const handleAnswerChange = (index: number, value: string) => {
     const newAnswers = [...answers];
