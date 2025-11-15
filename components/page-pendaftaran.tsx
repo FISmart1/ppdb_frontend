@@ -81,7 +81,8 @@ export default function PagePendaftaran() {
     checkComplete();
   }, []);
 
-  const activeStep = status === 'none' ? 0 : status === 'pending' ? 1 : status === 'accepted' ? 5 : 0;
+  const activeStep = 0; // <-- angka ini kamu tentukan sendiri
+
 
   return (
     <div>
