@@ -9,16 +9,18 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    setTimeout(() => {
+      const token = localStorage.getItem("token");
 
-    // Jika tidak ada token → redirect
-    if (!token) {
-      router.replace("/"); // lebih aman daripada push
-      return;
-    }
+      if (!token) {
+        router.replace("/"); 
+        return;
+      }
 
-    setIsLoading(false);
-  }, [router]);
+      setIsLoading(false);
+    }, 30);
+  }, []); // ← FIX
+
 
   if (isLoading) {
     return (

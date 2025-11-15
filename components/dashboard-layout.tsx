@@ -218,12 +218,6 @@ export function DashboardLayout() {
     };
   }, [showModal]);
 
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem('admin_logged_in');
-    if (!isLoggedIn) {
-      router.push('/'); // 🔒 paksa balik ke login
-    }
-  }, [router]);
 
   useEffect(() => {
     gsap.fromTo('.step-card', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1 });
@@ -350,11 +344,16 @@ export function DashboardLayout() {
   }, [isSidebarOpen]);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('admin_logged_in');
-    if (!isLoggedIn) {
-      router.push('/login'); // 🔒 paksa balik ke login
-    }
-  }, [router]);
+  if (typeof window === "undefined") return;
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    router.replace("/login");
+    return;
+  }
+
+}, []);  // ← WAJIB KOSONG
+
 
   return (
     <div className="dashboard-container min-h-screen bg-gray-50 flex">

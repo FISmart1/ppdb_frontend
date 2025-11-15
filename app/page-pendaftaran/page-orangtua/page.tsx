@@ -79,13 +79,14 @@ const [isEdit, setIsEdit] = useState(false);
     const res = await fetch(`http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`);
     const data = await res.json();
 
-    if (data) {
-      setIsEdit(true);  // <-- DATA ADA → MODE EDIT
-      setFormData((prev) => ({
-        ...prev,
-        ...data,
-      }));
-    }
+    if (res.ok && data && Object.keys(data).length > 0) {
+  setIsEdit(true);
+  setFormData((prev) => ({
+    ...prev,
+    ...data,
+  }));
+}
+
   };
 
   fetchData();
@@ -212,13 +213,19 @@ const [isEdit, setIsEdit] = useState(false);
   }
 
   const bodyToSend = { user_id: user.id, ...formData };
+// CEK apakah data orang tua sudah ada
+const check = await fetch(`http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`);
+const checkData = await check.json();
+
+const exists = check.ok && Object.keys(checkData).length > 0;
 
   try {
-    const url = isEdit
-      ? `http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`
-      : `http://localhost:5000/api/pendaftaran/form-orangtua`;
+    const url = exists
+  ? `http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`
+  : `http://localhost:5000/api/pendaftaran/form-orangtua`;
 
-    const method = isEdit ? "PUT" : "POST";
+const method = exists ? "PUT" : "POST";
+
 
     const res = await fetch(url, {
       method,

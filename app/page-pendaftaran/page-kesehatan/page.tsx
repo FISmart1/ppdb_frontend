@@ -43,7 +43,7 @@ const PageFormKesehatan: React.FC = () => {
       const res = await fetch(`http://localhost:5000/api/pendaftaran/form-kesehatan/${user.id}`);
       const data = await res.json();
 
-      if (data) {
+      if (res.ok && data && Object.keys(data).length > 0) {
         setIsEdit(true);
         setFormData((prev) => ({ ...prev, ...data }));
       }
@@ -166,7 +166,9 @@ const PageFormKesehatan: React.FC = () => {
     // 🔥 CEK: apakah user sudah pernah isi form kesehatan?
     const check = await fetch(`http://localhost:5000/api/pendaftaran/form-kesehatan/${user_id}`);
 
-    const exists = check.ok; // kalau 200 → data sudah ada
+    const resCheck = await check.json();
+const exists = check.ok && Object.keys(resCheck).length > 0;
+
 
     const method = exists ? 'PUT' : 'POST';
     const url = exists ? `http://localhost:5000/api/pendaftaran/form-kesehatan/${user_id}` : `http://localhost:5000/api/pendaftaran/form-kesehatan`;

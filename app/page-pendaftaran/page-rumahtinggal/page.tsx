@@ -48,7 +48,8 @@ export default function PageFormRumah() {
     const res = await fetch(`http://localhost:5000/api/pendaftaran/form-rumah/${user.id}`);
     const data = await res.json();
 
-    if (data) {
+    if (res.ok && data && Object.keys(data).length > 0) {
+
       setIsEdit(true);
       setFormData((prev) => ({ ...prev, ...data }));
     }
