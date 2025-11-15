@@ -63,7 +63,7 @@ export default function PagePendaftaran() {
 
     const checkComplete = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/pendaftaran/user/${user.id}/is-complete`);
+        const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/user/${user.id}/is-complete`);
         const result = await res.json();
 
         if (result.isComplete) {

@@ -44,7 +44,7 @@ const PageFormPribadi: React.FC = () => {
     if (!user?.id) return;
 
     const fetchData = async () => {
-      const res = await fetch(`http://localhost:5000/api/pendaftaran/form-pribadi/${user.id}`);
+      const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi/${user.id}`);
       const data = await res.json();
 
       if (data && data.id) {
@@ -147,8 +147,8 @@ const PageFormPribadi: React.FC = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     const url = isEdit
-      ? `http://localhost:5000/api/pendaftaran/form-pribadi/${user.id}` // UPDATE
-      : `http://localhost:5000/api/pendaftaran/form-pribadi`; // CREATE
+      ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi/${user.id}` // UPDATE
+      : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi`; // CREATE
 
     const method = isEdit ? 'PUT' : 'POST';
 

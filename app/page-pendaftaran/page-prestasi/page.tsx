@@ -68,7 +68,7 @@ useEffect(() => {
   if (!user?.id) return;
 
   const fetchData = async () => {
-    const res = await fetch(`http://localhost:5000/api/pendaftaran/form-prestasi/${user.id}`);
+    const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi/${user.id}`);
     const data = await res.json();
 
     if (data && data.id) {
@@ -144,8 +144,8 @@ useEffect(() => {
   delete (payload as any).created_at;
 
   const url = isEdit
-    ? `http://localhost:5000/api/pendaftaran/form-prestasi/${user.id}` // UPDATE
-    : `http://localhost:5000/api/pendaftaran/form-prestasi`;           // INSERT
+    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi/${user.id}` // UPDATE
+    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi`;           // INSERT
 
   const method = isEdit ? "PUT" : "POST";
 

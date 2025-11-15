@@ -45,7 +45,7 @@ export default function PageFormRumah() {
   if (!user?.id) return;
 
   const fetchData = async () => {
-    const res = await fetch(`http://localhost:5000/api/pendaftaran/form-rumah/${user.id}`);
+    const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah/${user.id}`);
     const data = await res.json();
 
     if (res.ok && data && Object.keys(data).length > 0) {
@@ -141,8 +141,8 @@ export default function PageFormRumah() {
 
   const method = isEdit ? "PUT" : "POST";
   const url = isEdit
-    ? `http://localhost:5000/api/pendaftaran/form-rumah/${user.id}`
-    : `http://localhost:5000/api/pendaftaran/form-rumah`;
+    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah/${user.id}`
+    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah`;
 
   try {
     const res = await fetch(url, {

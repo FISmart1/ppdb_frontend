@@ -76,7 +76,7 @@ const [isEdit, setIsEdit] = useState(false);
   if (!user?.id) return;
 
   const fetchData = async () => {
-    const res = await fetch(`http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`);
+    const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-orangtua/${user.id}`);
     const data = await res.json();
 
     if (res.ok && data && Object.keys(data).length > 0) {
@@ -214,15 +214,15 @@ const [isEdit, setIsEdit] = useState(false);
 
   const bodyToSend = { user_id: user.id, ...formData };
 // CEK apakah data orang tua sudah ada
-const check = await fetch(`http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`);
+const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-orangtua/${user.id}`);
 const checkData = await check.json();
 
 const exists = check.ok && Object.keys(checkData).length > 0;
 
   try {
     const url = exists
-  ? `http://localhost:5000/api/pendaftaran/form-orangtua/${user.id}`
-  : `http://localhost:5000/api/pendaftaran/form-orangtua`;
+  ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-orangtua/${user.id}`
+  : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-orangtua`;
 
 const method = exists ? "PUT" : "POST";
 

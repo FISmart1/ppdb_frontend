@@ -25,7 +25,7 @@ export default function PagePengumuman() {
       return;
     }
 
-    fetch(`http://localhost:5000/api/pengumuman/${user.id}`)
+    fetch(`https://backend_spmb.smktibazma.sch.id/api/pengumuman/${user.id}`)
       .then((res) => res.json())
       .then((res) => {
         setData(res);

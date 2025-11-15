@@ -80,7 +80,7 @@ export function DashboardLayout() {
 
     const checkComplete = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/pendaftaran/user/${user.id}/is-complete`);
+        const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/user/${user.id}/is-complete`);
         const result = await res.json();
         setIsFormComplete(result.isComplete);
       } catch (err) {

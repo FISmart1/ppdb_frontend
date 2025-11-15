@@ -39,7 +39,7 @@ const PageFormUpload: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/pendaftaran/form-berkas/${user_id}`);
+      const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
       if (!res.ok) return; // Data belum ada → tetap POST
 
       const data = await res.json();
@@ -58,7 +58,7 @@ const PageFormUpload: React.FC = () => {
       housePhotoTypes.forEach((h) => {
         if (data[h.name]) {
           loadedHouse[h.name] = { name: data[h.name] };
-          loadedPreviews[h.name] = `http://localhost:5000/uploads/${data[h.name]}`;
+          loadedPreviews[h.name] = `https://backend_spmb.smktibazma.sch.id/uploads/${data[h.name]}`;
         }
       });
 
@@ -200,7 +200,7 @@ const PageFormUpload: React.FC = () => {
   // Cek apakah data sudah ada → tentukan POST/PUT
   let isUpdate = false;
   try {
-    const check = await fetch(`http://localhost:5000/api/pendaftaran/form-berkas/${user_id}`);
+    const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
     if (check.ok) isUpdate = true; // data sudah ada → update
   } catch (e) {}
 
@@ -233,8 +233,8 @@ const PageFormUpload: React.FC = () => {
   }
 
   const url = isUpdate
-    ? `http://localhost:5000/api/pendaftaran/form-berkas/${user_id}`
-    : `http://localhost:5000/api/pendaftaran/form-berkas`;
+    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`
+    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
 
   const method = isUpdate ? "PUT" : "POST"; // 🔥 otomatis
 

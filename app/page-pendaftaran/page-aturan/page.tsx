@@ -17,7 +17,7 @@ const PageFormAturan: React.FC = () => {
 
     const loadData = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/pendaftaran/form-aturan/${user_id}`);
+        const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}`);
         if (!res.ok) return; // Data belum ada → tidak usah isi form
 
         const data = await res.json();
@@ -72,7 +72,7 @@ const PageFormAturan: React.FC = () => {
     // CEK apakah sudah ada data → kalau ada, update
     let isUpdate = false;
 try {
-  const check = await fetch(`http://localhost:5000/api/pendaftaran/form-aturan/${user_id}`);
+  const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}`);
   const checkData = await check.json();
 
   if (check.ok && Object.keys(checkData).length > 0) {
@@ -87,7 +87,7 @@ try {
       pernyataan3: answers[2],
     };
 
-    const url = isUpdate ? `http://localhost:5000/api/pendaftaran/form-aturan/${user_id}` : `http://localhost:5000/api/pendaftaran/form-aturan`;
+    const url = isUpdate ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan`;
 
     const method = isUpdate ? 'PUT' : 'POST';
 

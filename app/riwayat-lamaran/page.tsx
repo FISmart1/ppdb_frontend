@@ -15,7 +15,7 @@ export default function RiwayatLamaran() {
 
   const user_id = user.id;
 
-  const API_URL = `http://localhost:5000/api/pendaftaran/user/${user_id}/full`;
+  const API_URL = `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/user/${user_id}/full`;
 
   useEffect(() => {
     if (!user_id) {
@@ -80,7 +80,7 @@ export default function RiwayatLamaran() {
           rulesAgreement: data.aturan?.pernyataan1,
         });
 
-        const backendURL = 'http://localhost:5000/uploads/';
+        const backendURL = 'https://backend_spmb.smktibazma.sch.id/uploads/';
 
         // foto rumah
         setHousePhotos(

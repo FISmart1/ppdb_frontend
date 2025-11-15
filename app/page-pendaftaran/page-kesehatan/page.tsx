@@ -40,7 +40,7 @@ const PageFormKesehatan: React.FC = () => {
     if (!user?.id) return;
 
     const fetchData = async () => {
-      const res = await fetch(`http://localhost:5000/api/pendaftaran/form-kesehatan/${user.id}`);
+      const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-kesehatan/${user.id}`);
       const data = await res.json();
 
       if (res.ok && data && Object.keys(data).length > 0) {
@@ -164,14 +164,14 @@ const PageFormKesehatan: React.FC = () => {
     }
 
     // 🔥 CEK: apakah user sudah pernah isi form kesehatan?
-    const check = await fetch(`http://localhost:5000/api/pendaftaran/form-kesehatan/${user_id}`);
+    const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-kesehatan/${user_id}`);
 
     const resCheck = await check.json();
 const exists = check.ok && Object.keys(resCheck).length > 0;
 
 
     const method = exists ? 'PUT' : 'POST';
-    const url = exists ? `http://localhost:5000/api/pendaftaran/form-kesehatan/${user_id}` : `http://localhost:5000/api/pendaftaran/form-kesehatan`;
+    const url = exists ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-kesehatan/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-kesehatan`;
 
     try {
       const res = await fetch(url, {
