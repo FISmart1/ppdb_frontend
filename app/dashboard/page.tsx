@@ -9,11 +9,14 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem("admin_logged_in");
-    if (isLoggedIn !== "true") {
-      router.push("/");
+    const token = localStorage.getItem("token");
+
+    // Jika tidak ada token → redirect
+    if (!token) {
+      router.replace("/"); // lebih aman daripada push
       return;
     }
+
     setIsLoading(false);
   }, [router]);
 

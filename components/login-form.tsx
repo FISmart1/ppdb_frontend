@@ -9,22 +9,32 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const userEmail = email.trim();
-    const userPass = password.trim();
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (userEmail === "admin@gmail.com" && userPass === "admin") {
-      localStorage.setItem("admin_logged_in", "true");
-      localStorage.setItem("admin_username", "admin");
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Login gagal");
+        return;
+      }
+
+      // Simpan token & user
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      alert("Login berhasil!");
       router.push("/dashboard");
-    } else if (userEmail === "peserta@gmail.com" && userPass === "12345") {
-      localStorage.setItem("admin_logged_in", "true");
-      localStorage.setItem("admin_username", "peserta");
-      router.push("/dashboard");
-    } else {
-      alert("Email atau kata sandi salah!");
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan pada server!");
     }
   };
 
@@ -47,18 +57,15 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          aria-label="Kata Sandi"
         />
 
         <button
           type="button"
           onClick={() => setShowPassword((s) => !s)}
           className="absolute inset-y-0 right-2 flex items-center px-2"
-          aria-pressed={showPassword}
-          aria-label={showPassword ? "Sembunyikan kata sandi" : "Perlihatkan kata sandi"}
-          title={showPassword ? "Sembunyikan kata sandi" : "Perlihatkan kata sandi"}
         >
           {showPassword ? (
+            // ICON EYE OFF
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -66,7 +73,6 @@ export default function LoginForm() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              aria-hidden
             >
               <path
                 strokeLinecap="round"
@@ -75,6 +81,7 @@ export default function LoginForm() {
               />
             </svg>
           ) : (
+            // ICON EYE
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -82,7 +89,6 @@ export default function LoginForm() {
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              aria-hidden
             >
               <path
                 strokeLinecap="round"
@@ -99,7 +105,7 @@ export default function LoginForm() {
         </button>
       </div>
 
-      {/* Tombol Reset Password di kiri */}
+      {/* Lupa Password */}
       <div className="flex justify-end">
         <button
           type="button"

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function RegisterForm() {
   const router = useRouter();
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -18,53 +19,55 @@ export default function RegisterForm() {
     });
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { email, password, confirmPassword } = formData;
 
-    if ( !email || !password || !confirmPassword) {
-      alert("Semua field wajib diisi!");
-      return;
+    const { name, email, password, confirmPassword } = formData;
+
+    if (!name || !email || !password || !confirmPassword) {
+      return alert("Semua field wajib diisi!");
     }
 
     if (password !== confirmPassword) {
-      alert("Kata sandi dan konfirmasi tidak cocok!");
-      return;
+      return alert("Konfirmasi password tidak cocok!");
     }
 
-    const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    const emailExists = existingUsers.some(
-      (user: any) => user.email === email.trim()
-    );
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          name,
+          email,
+          password 
+        }),
+      });
 
-    if (emailExists) {
-      alert("Email sudah terdaftar!");
-      return;
+      const data = await res.json();
+      alert(data.message);
+
+      if (res.ok) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Register error:", error);
+      alert("Terjadi kesalahan pada server!");
     }
-
-    const newUser = {
-      email: email.trim(),
-      password: password.trim(),
-    };
-
-    existingUsers.push(newUser);
-    localStorage.setItem("users", JSON.stringify(existingUsers));
-
-    alert("Pendaftaran berhasil! Silakan login.");
-    router.push("/");
   };
 
   return (
     <form onSubmit={handleRegister} className="space-y-4">
+
       <input
-        type="String"
-        name="String"
+        type="text"
+        name="name"
         placeholder="Nama Lengkap"
         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1d2b6f] outline-none"
-        value={formData.String}
+        value={formData.name}
         onChange={handleChange}
         required
       />
+
       <input
         type="email"
         name="email"
@@ -74,6 +77,7 @@ export default function RegisterForm() {
         onChange={handleChange}
         required
       />
+
       <input
         type="password"
         name="password"
@@ -83,6 +87,7 @@ export default function RegisterForm() {
         onChange={handleChange}
         required
       />
+
       <input
         type="password"
         name="confirmPassword"
@@ -100,7 +105,7 @@ export default function RegisterForm() {
         Daftar
       </button>
 
-       <p className="text-center text-sm text-gray-600 mt-2">
+      <p className="text-center text-sm text-gray-600 mt-2">
         Sudah ada akun?{" "}
         <button
           type="button"
