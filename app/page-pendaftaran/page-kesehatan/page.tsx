@@ -131,36 +131,77 @@ const PageFormKesehatan: React.FC = () => {
   };
 
   // 🔹 Submit form
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const emptyFields = validateForm();
-    if (emptyFields.length > 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Data Belum Lengkap!",
-        html: `<p class="mb-2">Lengkapi kolom berikut:</p>
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const emptyFields = validateForm();
+
+  if (emptyFields.length > 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "Data Belum Lengkap!",
+      html: `
+        <p class="mb-2">Lengkapi kolom berikut:</p>
         <ul style="text-align:left; display:inline-block;">
           ${emptyFields.map((f) => `<li>• ${f}</li>`).join("")}
-        </ul>`,
-        confirmButtonText: "Oke, isi sekarang",
-        confirmButtonColor: "#1E3A8A",
-        background: "#f9fafb",
-        color: "#1E293B",
-        showClass: { popup: "animate__animated animate__shakeX" },
+        </ul>
+      `,
+      confirmButtonText: "Oke, isi sekarang",
+      confirmButtonColor: "#1E3A8A",
+    });
+    return;
+  }
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user_id = user?.id;
+
+  if (!user_id) {
+    Swal.fire({
+      icon: "error",
+      title: "User tidak ditemukan!",
+      text: "Silakan login ulang.",
+    });
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/pendaftaran/form-kesehatan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id,
+        ...formData,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return Swal.fire({
+        icon: "error",
+        title: "Gagal!",
+        text: data.message || "Terjadi kesalahan.",
       });
-      return;
     }
 
     Swal.fire({
-      title: "Data Tersimpan!",
-      text: "Form kesehatan kamu berhasil disimpan.",
       icon: "success",
+      title: "Data Tersimpan!",
+      text: "Form kesehatan berhasil disimpan.",
       confirmButtonText: "Lanjutkan",
       confirmButtonColor: "#1E3A8A",
-      showClass: { popup: "animate__animated animate__fadeInDown" },
-      hideClass: { popup: "animate__animated animate__fadeOutUp" },
-    }).then(() => router.push("/page-pendaftaran/page-uploadberkas"));
-  };
+    }).then(() => {
+      router.push("/page-pendaftaran/page-uploadberkas");
+    });
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Kesalahan Server",
+      text: "Tidak dapat menghubungi server.",
+    });
+  }
+};
+
 
   const handleBack = () => router.push("/page-pendaftaran/page-rumahtinggal");
 
