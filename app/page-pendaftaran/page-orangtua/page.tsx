@@ -243,7 +243,7 @@ export default function PageFormOrangTua() {
       text: "Data orang tua/wali sudah disimpan.",
       confirmButtonColor: "#1E3A8A",
     }).then(() => {
-      router.push("/page-pendaftaran/page-berkas"); // redirect ke tahap selanjutnya
+      router.push("/page-pendaftaran/page-rumahtinggal"); // redirect ke tahap selanjutnya
     });
 
   } catch (err) {
