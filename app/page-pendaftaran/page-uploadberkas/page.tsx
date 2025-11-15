@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Upload, CheckCircle, Image } from "lucide-react";
 import Swal from "sweetalert2";
 import "animate.css";
+import pako from "pako";
 
 const PageFormUpload: React.FC = () => {
   const router = useRouter();
@@ -19,8 +20,8 @@ const PageFormUpload: React.FC = () => {
     { name: "foto", label: "Pas Foto (Berwarna) 3x4 (terbaru dalam 3 bulan terakhir)" },
     { name: "kip", label: "Sertakan Bukti KIP" },
     { name: "bpjs", label: "Scan / Foto Kartu BPJS atau KIS" },
-    { name: "rekomendasi-surat", label: "Upload Surat Rekomendasi" },
-    { name: "tagihan listrik", label: "Upload Bukti Pembayaran Listrik" },
+    { name: "rekomendasi_surat", label: "Upload Surat Rekomendasi" },
+    { name: "tagihan_listrik", label: "Upload Bukti Pembayaran Listrik" },
     { name: "reels", label: "Upload Bukti Link Reels" },
   ];
 
@@ -29,61 +30,210 @@ const PageFormUpload: React.FC = () => {
     { name: "ruangtamu", label: "Dapur / Kamar mandi", example: "/dapur.jpeg" },
     { name: "kamar", label: "Kamar Tidur", example: "/kamar.jpeg" },
   ];
+  const compressPDF = async (file: File, maxSizeMB = 1): Promise<File> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const uint8Array = new Uint8Array(arrayBuffer);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files: selectedFiles } = e.target;
-    if (selectedFiles && selectedFiles[0]) {
-      setFiles((prev) => ({ ...prev, [name]: selectedFiles[0] }));
+  // kompres zip
+  const compressed = pako.deflate(uint8Array);
+
+  // Jika masih lebih besar dari batas -> tetap pakai yg asli
+  if (compressed.byteLength > maxSizeMB * 1024 * 1024) {
+    return file;
+  }
+
+  return new File([compressed], file.name, { type: file.type });
+};
+
+  const compressImage = async (file: File, maxSizeMB = 1): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement("img"); // FIX: bekerja di client
+
+    const url = URL.createObjectURL(file);
+    img.src = url;
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      const scale = Math.sqrt((maxSizeMB * 1024 * 1024) / file.size);
+      const w = img.naturalWidth * Math.min(scale, 1);
+      const h = img.naturalHeight * Math.min(scale, 1);
+
+      canvas.width = w;
+      canvas.height = h;
+
+      ctx.drawImage(img, 0, 0, w, h);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          resolve(new File([blob], file.name, { type: file.type }));
+        },
+        file.type,
+        0.7
+      );
+    };
+
+    img.onerror = () => {
+      resolve(file);
+    };
+  });
+};
+
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, files: selectedFiles } = e.target;
+
+  if (selectedFiles && selectedFiles[0]) {
+    let file = selectedFiles[0];
+
+    // AUTO KOMPRES GAMBAR
+    if (file.type.startsWith("image/")) {
+      file = await compressImage(file, 1.8); // max 1.8MB
     }
-  };
 
-  const handleHousePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files: selectedFiles } = e.target;
-    if (selectedFiles && selectedFiles[0]) {
-      const file = selectedFiles[0];
-      setHousePhotos((prev) => ({ ...prev, [name]: file }));
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setHousePreviews((prev) => ({
-          ...prev,
-          [name]: event.target?.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
+    // AUTO KOMPRES PDF
+    if (file.type === "application/pdf") {
+      file = await compressPDF(file, 1.8);
     }
-  };
+
+    setFiles((prev) => ({ ...prev, [name]: file }));
+  }
+};
+
+
+  const handleHousePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, files: selectedFiles } = e.target;
+
+  if (selectedFiles && selectedFiles[0]) {
+    let file = selectedFiles[0];
+
+    // auto kompres foto rumah
+    if (file.type.startsWith("image/")) {
+      file = await compressImage(file, 1.5);
+    }
+
+    setHousePhotos((prev) => ({ ...prev, [name]: file }));
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setHousePreviews((prev) => ({
+        ...prev,
+        [name]: event.target?.result as string,
+      }));
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
 
   const handleBack = () => router.push("/page-pendaftaran/page-kesehatan");
 
-  const handleNext = () => {
-    const emptyFiles = requiredFiles.filter((f) => !files[f.name]).map((f) => f.label);
-    const emptyHousePhotos = housePhotoTypes.filter((f) => !housePhotos[f.name]).map((f) => f.label);
+  const handleSubmit = async () => {
+  // CEK FILE KOSONG
+  const emptyFiles = requiredFiles
+    .filter((f) => !files[f.name])
+    .map((f) => f.label);
 
-    if (emptyFiles.length > 0 || emptyHousePhotos.length > 0) {
+  const emptyHousePhotos = housePhotoTypes
+    .filter((f) => !housePhotos[f.name])
+    .map((f) => f.label);
+
+  if (emptyFiles.length > 0 || emptyHousePhotos.length > 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "Upload Belum Lengkap!",
+      html: `
+        <p class="mb-2">Silakan unggah berkas berikut terlebih dahulu:</p>
+        <ul style="text-align:left; display:inline-block;">
+          ${[...emptyFiles, ...emptyHousePhotos]
+            .map((f) => `<li>• ${f}</li>`)
+            .join("")}
+        </ul>
+      `,
+      confirmButtonText: "Oke, lengkapi dulu",
+      confirmButtonColor: "#1E3A8A",
+    });
+    return;
+  }
+
+  // CEK USER LOGIN
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (!user.id) {
+    Swal.fire({
+      icon: "error",
+      title: "User tidak ditemukan",
+      text: "Silakan login ulang.",
+    });
+    return;
+  }
+
+  // PREPARE FORM DATA
+  const form = new FormData();
+  form.append("user_id", user.id);
+
+  // Tambah dokumen wajib
+  Object.keys(files).forEach((key) => {
+    if (files[key]) {
+      form.append(key, files[key] as File);
+    }
+  });
+
+  // Tambah foto rumah
+  Object.keys(housePhotos).forEach((key) => {
+    if (housePhotos[key]) {
+      form.append(key, housePhotos[key] as File);
+    }
+  });
+
+  // UPLOAD KE BACKEND
+  try {
+    const res = await fetch("http://localhost:5000/api/pendaftaran/form-berkas", {
+      method: "POST",
+      body: form,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
       Swal.fire({
-        icon: "warning",
-        title: "Upload Belum Lengkap!",
-        html: `
-          <p class="mb-2">Silakan unggah berkas berikut terlebih dahulu:</p>
-          <ul style="text-align:left; display:inline-block;">
-            ${[...emptyFiles, ...emptyHousePhotos].map((f) => `<li>• ${f}</li>`).join("")}
-          </ul>
-        `,
-        confirmButtonText: "Oke, lengkapi dulu",
-        confirmButtonColor: "#1E3A8A",
+        icon: "error",
+        title: "Upload Gagal!",
+        text: data.message,
       });
       return;
     }
 
+    // SUCCESS
     Swal.fire({
       icon: "success",
       title: "Semua Dokumen Lengkap!",
-      text: "Terima kasih, semua file berhasil diunggah.",
+      text: "Semua file berhasil diunggah.",
       confirmButtonText: "Lanjutkan",
       confirmButtonColor: "#1E3A8A",
-    }).then(() => router.push("/page-pendaftaran/page-aturan"));
-  };
+    }).then(() => {
+      router.push("/page-pendaftaran/page-aturan");
+    });
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Kesalahan Server",
+      text: "Tidak dapat menghubungi server.",
+    });
+  }
+};
+
 
   const renderButton = (label: string, name: string) => {
     const fileSelected = files[name];
@@ -286,7 +436,7 @@ const PageFormUpload: React.FC = () => {
             Kembali
           </button>
           <button
-            onClick={handleNext}
+            onClick={handleSubmit}
             className="w-full sm:w-auto bg-[#1E3A8A] text-white font-medium px-6 py-2 rounded-full hover:bg-[#162d66] transition"
           >
             Selanjutnya
