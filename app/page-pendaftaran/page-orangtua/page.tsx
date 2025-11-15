@@ -103,9 +103,12 @@ const [isEdit, setIsEdit] = useState(false);
     const numericFields = [
       "ayah_telepon",
       "ayah_penghasilan",
+      "ayah_tanggungan",
       "ibu_telepon",
       "ibu_penghasilan",
+      "ibu_tanggungan",
       "wali_penghasilan",
+      "wali_tanggungan",
       "kerabatTelepon",
     ];
     const finalValue = numericFields.includes(name)
