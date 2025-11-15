@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import 'animate.css';
@@ -28,6 +28,7 @@ interface PrestasiForm {
 
 const PageFormPrestasi: React.FC = () => {
   const router = useRouter();
+const [isEdit, setIsEdit] = useState(false);
 
   const [formData, setFormData] = useState<PrestasiForm>({
     math: { s3: '', s4: '', s5: '' },
@@ -43,6 +44,8 @@ const PageFormPrestasi: React.FC = () => {
     hobby: '',
     special: '',
   });
+
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field?: keyof PrestasiForm, semester?: keyof SemesterScore) => {
     const { name, value } = e.target;
@@ -60,6 +63,23 @@ const PageFormPrestasi: React.FC = () => {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
+useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (!user?.id) return;
+
+  const fetchData = async () => {
+    const res = await fetch(`http://localhost:5000/api/pendaftaran/form-prestasi/${user.id}`);
+    const data = await res.json();
+
+    if (data && data.id) {
+      setIsEdit(true);
+      setFormData(normalizePrestasi(data));
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const validateForm = () => {
     const emptyFields: string[] = [];
@@ -94,54 +114,99 @@ const PageFormPrestasi: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const emptyFields = validateForm();
+  e.preventDefault();
 
-    if (emptyFields.length > 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Data Belum Lengkap!',
-        html: `
-          <p class="mb-2">Lengkapi dulu kolom berikut:</p>
-          <ul style="text-align:left; display:inline-block;">
-            ${emptyFields.map((f) => `<li>• ${f}</li>`).join('')}
-          </ul>
-        `,
-        confirmButtonText: 'Oke, isi sekarang',
-        confirmButtonColor: '#1E3A8A',
-        background: '#f9fafb',
-        color: '#1E293B',
-        showClass: { popup: 'animate__animated animate__shakeX' },
-        hideClass: { popup: 'animate__animated animate__fadeOutUp' },
-      });
-      return;
-    }
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    const bodyToSend = {
-      user_id: user.id,
-      ...formData,
-    };
-
-    const res = await fetch('http://localhost:5000/api/pendaftaran/form-prestasi', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyToSend),
+  const emptyFields = validateForm();
+  if (emptyFields.length > 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Data Belum Lengkap!',
+      html: `
+        <p class="mb-2">Lengkapi dulu kolom berikut:</p>
+        <ul style="text-align:left; display:inline-block;">
+          ${emptyFields.map((f) => `<li>• ${f}</li>`).join('')}
+        </ul>
+      `,
+      confirmButtonColor: '#1E3A8A',
     });
+    return;
+  }
 
-    const data = await res.json();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-    if (res.ok) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Data prestasi tersimpan!',
-        confirmButtonColor: '#1E3A8A',
-      }).then(() => router.push('/page-pendaftaran/page-orangtua'));
-    } else {
-      Swal.fire('Gagal!', data.message, 'error');
-    }
+  const payload = {
+    user_id: user.id,
+    ...formData
   };
+
+  // Jangan ikut kirim id atau created_at saat update
+  delete (payload as any).id;
+  delete (payload as any).created_at;
+
+  const url = isEdit
+    ? `http://localhost:5000/api/pendaftaran/form-prestasi/${user.id}` // UPDATE
+    : `http://localhost:5000/api/pendaftaran/form-prestasi`;           // INSERT
+
+  const method = isEdit ? "PUT" : "POST";
+
+  const res = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    Swal.fire({
+      icon: "success",
+      title: isEdit ? "Data prestasi berhasil diperbarui!" : "Data prestasi tersimpan!",
+      confirmButtonColor: "#1E3A8A",
+    }).then(() => router.push("/page-pendaftaran/page-orangtua"));
+  } else {
+    Swal.fire("Gagal!", data.message, "error");
+  }
+};
+
+const normalizePrestasi = (data: any) => {
+  return {
+    math: {
+      s3: data.math_s3 || "",
+      s4: data.math_s4 || "",
+      s5: data.math_s5 || "",
+    },
+    indo: {
+      s3: data.indo_s3 || "",
+      s4: data.indo_s4 || "",
+      s5: data.indo_s5 || "",
+    },
+    english: {
+      s3: data.english_s3 || "",
+      s4: data.english_s4 || "",
+      s5: data.english_s5 || "",
+    },
+    ipa: {
+      s3: data.ipa_s3 || "",
+      s4: data.ipa_s4 || "",
+      s5: data.ipa_s5 || "",
+    },
+    pai: {
+      s3: data.pai_s3 || "",
+      s4: data.pai_s4 || "",
+      s5: data.pai_s5 || "",
+    },
+
+    foreignLanguage: data.foreignLanguage || "",
+    hafalan: data.hafalan || "",
+    achievement: data.achievement || "",
+    organization: data.organization || "",
+    dream: data.dream || "",
+    hobby: data.hobby || "",
+    special: data.special || "",
+  };
+};
+
+
 
   const handleBack = () => router.push('/page-pendaftaran');
 
