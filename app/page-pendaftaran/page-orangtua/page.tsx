@@ -160,29 +160,102 @@ export default function PageFormOrangTua() {
     return emptyFields;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const emptyFields = validateForm();
-    if (emptyFields.length > 0) {
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // VALIDASI REQUIRED FIELD
+  const emptyFields = Object.entries(formData)
+    .filter(([key, value]) => value === "")
+    .map(([key]) => key);
+
+  if (emptyFields.length > 0) {
+    Swal.fire({
+      icon: "warning",
+      title: "Data belum lengkap!",
+      text: `Field berikut wajib diisi: ${emptyFields.join(", ")}`,
+      confirmButtonColor: "#1E3A8A",
+    });
+    return;
+  }
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  if (!user?.id) {
+    Swal.fire({
+      icon: "error",
+      title: "Anda belum login!",
+      confirmButtonColor: "#1E3A8A",
+    });
+    return;
+  }
+
+  const bodyToSend = {
+    user_id: user.id,
+
+    ayahNama: formData.ayahNama,
+    ayahAlamat: formData.ayahAlamat,
+    ayahTelepon: formData.ayahTelepon,
+    ayahPekerjaan: formData.ayahPekerjaan,
+    ayahTanggungan: formData.ayahTanggungan,
+    ayahpenghasilan: formData.ayahpenghasilan,
+
+    ibuNama: formData.ibuNama,
+    ibuAlamat: formData.ibuAlamat,
+    ibuTelepon: formData.ibuTelepon,
+    ibuPekerjaan: formData.ibuPekerjaan,
+    ibuTanggungan: formData.ibuTanggungan,
+    ibupenghasilan: formData.ibupenghasilan,
+
+    waliNama: formData.waliNama,
+    waliHubungan: formData.waliHubungan,
+    waliTanggungan: formData.waliTanggungan,
+    waliPekerjaan: formData.waliPekerjaan,
+    waliAlamat: formData.waliAlamat,
+    waliSumber: formData.waliSumber,
+    walipenghasilan: formData.walipenghasilan,
+
+    infoPPDB: formData.infoPPDB,
+    saudaraBeasiswa: formData.saudaraBeasiswa,
+  };
+
+  try {
+    const res = await fetch("http://localhost:5000/api/pendaftaran/form-orangtua", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bodyToSend),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
       Swal.fire({
-        icon: "warning",
-        title: "Data Belum Lengkap!",
-        html: `<p class="mb-2">Lengkapi kolom berikut:</p><ul style="text-align:left; display:inline-block;">${emptyFields
-          .map((f) => `<li>• ${f}</li>`)
-          .join("")}</ul>`,
-        confirmButtonText: "Oke, isi sekarang",
+        icon: "error",
+        title: "Gagal menyimpan!",
+        text: data.message,
         confirmButtonColor: "#1E3A8A",
       });
       return;
     }
+
     Swal.fire({
       icon: "success",
-      title: "Data Lengkap!",
-      text: "Form Data Orang Tua/Wali berhasil disimpan.",
-      confirmButtonText: "Lanjutkan",
+      title: "Berhasil!",
+      text: "Data orang tua/wali sudah disimpan.",
       confirmButtonColor: "#1E3A8A",
-    }).then(() => router.push("/page-pendaftaran/page-rumahtinggal"));
-  };
+    }).then(() => {
+      router.push("/page-pendaftaran/page-berkas"); // redirect ke tahap selanjutnya
+    });
+
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "Server error!",
+      text: "Terjadi kesalahan koneksi.",
+      confirmButtonColor: "#1E3A8A",
+    });
+  }
+};
+
 
   const handleBack = () => router.push("/page-pendaftaran/page-prestasi");
 
