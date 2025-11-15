@@ -9,6 +9,8 @@ import { ChevronDown } from 'lucide-react';
 const PageFormPribadi: React.FC = () => {
   const router = useRouter();
 
+  const [isEdit, setIsEdit] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: '',
     nisn: '',
@@ -36,32 +38,52 @@ const PageFormPribadi: React.FC = () => {
     livingWithCustom: '',
   });
 
-  // ✅ State Wilayah Indonesia
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
-  const [districts, setDistricts] = useState<any[]>([]);
-  const [villages, setVillages] = useState<any[]>([]);
-
-  // ✅ Fetch provinsi saat pertama kali render
+  // ====== GET DATA (prefill jika sudah ada) ======
   useEffect(() => {
-    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
-      .then((res) => res.json())
-      .then((data) => setProvinces(data));
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user?.id) return;
+
+    const fetchData = async () => {
+      const res = await fetch(`http://localhost:5000/api/pendaftaran/form-pribadi/${user.id}`);
+      const data = await res.json();
+
+      if (data && data.id) {
+        setIsEdit(true);
+
+        const formatDate = (d: any) => {
+          if (!d) return '';
+          return new Date(d).toISOString().split('T')[0];
+        };
+
+        setFormData((prev) => ({
+          ...prev,
+          ...data,
+          birthDate: formatDate(data.birthDate),
+        }));
+      }
+    };
+
+    fetchData();
   }, []);
 
+  // ====== Only-number fields ======
   const numericFields = ['nisn', 'nik', 'graduationYear', 'npsn', 'childOrder', 'phone', 'postalCode'];
 
+  // ====== handleChange ======
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     const newValue = numericFields.includes(name) ? value.replace(/\D/g, '') : value;
+
     setFormData((prev) => ({
       ...prev,
       [name]: newValue,
     }));
   };
 
+  // ====== VALIDATION ======
   const validateForm = () => {
     const emptyFields: string[] = [];
+
     const fieldLabels: Record<string, string> = {
       fullName: 'Nama Lengkap',
       nisn: 'NISN',
@@ -90,18 +112,23 @@ const PageFormPribadi: React.FC = () => {
     };
 
     for (const [key, value] of Object.entries(formData)) {
-      if ((value as string).trim() === '') {
+      const val = String(value ?? '').trim();
+
+      if (val === '') {
         if (key === 'livingWithCustom' && formData.livingWith !== 'lainnya') continue;
+
         emptyFields.push(fieldLabels[key]);
       }
     }
+
     return emptyFields;
   };
 
+  // ====== SUBMIT (POST or UPDATE) ======
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const emptyFields = validateForm();
 
+    const emptyFields = validateForm();
     if (emptyFields.length > 0) {
       Swal.fire({
         icon: 'warning',
@@ -112,7 +139,6 @@ const PageFormPribadi: React.FC = () => {
             ${emptyFields.map((f) => `<li>• ${f}</li>`).join('')}
           </ul>
         `,
-        confirmButtonText: 'Oke, isi sekarang',
         confirmButtonColor: '#1E3A8A',
       });
       return;
@@ -120,8 +146,14 @@ const PageFormPribadi: React.FC = () => {
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-    const res = await fetch('http://localhost:5000/api/pendaftaran/form-pribadi', {
-      method: 'POST',
+    const url = isEdit
+      ? `http://localhost:5000/api/pendaftaran/form-pribadi/${user.id}` // UPDATE
+      : `http://localhost:5000/api/pendaftaran/form-pribadi`; // CREATE
+
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: user.id,
@@ -134,7 +166,7 @@ const PageFormPribadi: React.FC = () => {
     if (res.ok) {
       Swal.fire({
         icon: 'success',
-        title: 'Data tersimpan!',
+        title: isEdit ? 'Data berhasil diperbarui!' : 'Data tersimpan!',
         text: 'Lanjutkan ke tahap selanjutnya.',
         confirmButtonColor: '#1E3A8A',
       }).then(() => router.push('/page-pendaftaran/page-prestasi'));

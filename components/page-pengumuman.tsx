@@ -89,12 +89,6 @@ export default function PagePengumuman() {
             Silakan melakukan pendaftaran terlebih dahulu melalui halaman
             <b> Pendaftaran</b>.
           </p>
-          <button
-            onClick={() => (window.location.href = "/page-pendaftaran")}
-            className="mt-6 bg-[#1E3A8A] text-white px-6 py-2 rounded-full hover:bg-[#162d66] transition"
-          >
-            Isi Formulir Sekarang →
-          </button>
         </section>
       )}
 
