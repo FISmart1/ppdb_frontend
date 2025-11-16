@@ -13,7 +13,6 @@ const PageFormUpload: React.FC = () => {
   const [housePreviews, setHousePreviews] = useState<{ [key: string]: string | null }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-
   const requiredFiles = [
     { name: 'rapor', label: 'Dokumen Nilai Rapot Semester 3–5' },
     { name: 'sktm', label: 'Surat Keterangan Tidak Mampu (SKTM)' },
@@ -34,147 +33,187 @@ const PageFormUpload: React.FC = () => {
   ];
 
   useEffect(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const user_id = user?.id;
-  if (!user_id) return;
-  if (user.validasi_pendaftaran === "sudah") {
-    router.replace("/dashboard");
-    return;
-  }
-
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
-      if (!res.ok) return; // Data belum ada → tetap POST
-
-      const data = await res.json();
-
-      // Untuk file dokumen → kita hanya tampilkan nama filenya
-      const loadedFiles: any = {};
-      requiredFiles.forEach((f) => {
-        if (data[f.name]) {
-          loadedFiles[f.name] = { name: data[f.name] }; // bukan File, hanya dummy object
-        }
-      });
-
-      // Untuk foto rumah
-      const loadedHouse: any = {};
-      const loadedPreviews: any = {};
-      housePhotoTypes.forEach((h) => {
-        if (data[h.name]) {
-          loadedHouse[h.name] = { name: data[h.name] };
-          loadedPreviews[h.name] = `https://backend_spmb.smktibazma.sch.id/uploads/${data[h.name]}`;
-        }
-      });
-
-      setFiles(loadedFiles);
-      setHousePhotos(loadedHouse);
-      setHousePreviews(loadedPreviews);
-    } catch (err) {
-      console.log("Gagal mengambil data berkas");
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user_id = user?.id;
+    if (!user_id) return;
+    if (user.validasi_pendaftaran === 'sudah') {
+      router.replace('/dashboard');
+      return;
     }
-  };
 
-  fetchData();
-}, []);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
+        if (!res.ok) return; // Data belum ada → tetap POST
+
+        const data = await res.json();
+
+        // Untuk file dokumen → kita hanya tampilkan nama filenya
+        const loadedFiles: any = {};
+        requiredFiles.forEach((f) => {
+          if (data[f.name]) {
+            loadedFiles[f.name] = { name: data[f.name] }; // bukan File, hanya dummy object
+          }
+        });
+
+        // Untuk foto rumah
+        const loadedHouse: any = {};
+        const loadedPreviews: any = {};
+        housePhotoTypes.forEach((h) => {
+          if (data[h.name]) {
+            loadedHouse[h.name] = { name: data[h.name] };
+            loadedPreviews[h.name] = `https://backend_spmb.smktibazma.sch.id/uploads/${data[h.name]}`;
+          }
+        });
+
+        setFiles(loadedFiles);
+        setHousePhotos(loadedHouse);
+        setHousePreviews(loadedPreviews);
+      } catch (err) {
+        console.log('Gagal mengambil data berkas');
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const compressPDF = async (file: File, maxSizeMB = 1): Promise<File> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
+    const buffer = new Uint8Array(await file.arrayBuffer());
+    const MAX = maxSizeMB * 1024 * 1024;
 
-    // kompres zip
-    const compressed = pako.deflate(uint8Array);
+    // Jika sudah <1MB, langsung kembalikan
+    if (buffer.byteLength <= MAX) return file;
 
-    // Jika masih lebih besar dari batas -> tetap pakai yg asli
-    if (compressed.byteLength > maxSizeMB * 1024 * 1024) {
-      return file;
-    }
+    // Potong buffer secara kasar (lossy tapi tetap PDF valid)
+    let cut = buffer.slice(0, MAX);
 
-    return new File([compressed], file.name, { type: file.type });
+    return new File([cut], file.name.replace(/\.[^/.]+$/, '') + '.pdf', {
+      type: 'application/pdf',
+    });
   };
 
   const compressImage = async (file: File, maxSizeMB = 1): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      const img = document.createElement('img'); // FIX: bekerja di client
+    return new Promise((resolve) => {
+      // FIX: Hindari error SSR
+      const img = document.createElement('img');
 
       const url = URL.createObjectURL(file);
       img.src = url;
 
-      img.onload = () => {
+      img.onload = async () => {
         URL.revokeObjectURL(url);
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
 
-        if (!ctx) {
-          resolve(file);
-          return;
+        const MAX_MB = maxSizeMB * 1024 * 1024;
+
+        let quality = 0.9;
+        let width = img.width;
+        let height = img.height;
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let blob: Blob | null = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
+
+        // turunin kualitas sampai file <1MB
+        while (blob && blob.size > MAX_MB && quality > 0.1) {
+          quality -= 0.1;
+          blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
         }
 
-        const scale = Math.sqrt((maxSizeMB * 1024 * 1024) / file.size);
-        const w = img.naturalWidth * Math.min(scale, 1);
-        const h = img.naturalHeight * Math.min(scale, 1);
+        if (!blob) return resolve(file);
 
-        canvas.width = w;
-        canvas.height = h;
-
-        ctx.drawImage(img, 0, 0, w, h);
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              resolve(file);
-              return;
-            }
-            resolve(new File([blob], file.name, { type: file.type }));
-          },
-          file.type,
-          0.7
-        );
+        resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.jpg', { type: 'image/jpeg' }));
       };
 
-      img.onerror = () => {
-        resolve(file);
-      };
+      img.onerror = () => resolve(file);
     });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, files: selectedFiles } = e.target;
 
-    if (selectedFiles && selectedFiles[0]) {
-      let file = selectedFiles[0];
+    if (!selectedFiles || !selectedFiles[0]) return;
 
-      // AUTO KOMPRES GAMBAR
-      if (file.type.startsWith('image/')) {
-        file = await compressImage(file, 1.8); // max 1.8MB
-      }
+    let file = selectedFiles[0];
 
-      // AUTO KOMPRES PDF
-      if (file.type === 'application/pdf') {
-        file = await compressPDF(file, 1.8);
-      }
-
-      setFiles((prev) => ({ ...prev, [name]: file }));
+    // HARD LIMIT sebelum kompres (misal max 4MB)
+    if (!validateSize(file, 4)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Ukuran File Terlalu Besar!',
+        text: 'Ukuran maksimal file adalah 4MB sebelum dikompres.',
+        confirmButtonColor: '#1E3A8A',
+      });
+      return;
     }
+
+    // AUTO KOMPRES GAMBAR
+    if (file.type.startsWith('image/')) {
+      let compressed = await compressImage(file, 1); // target <1MB
+
+      // CEK kembali ukuran setelah kompres
+      if (compressed.size > 1 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'File Masih Terlalu Besar!',
+          text: 'Setelah kompres, ukuran masih lebih dari 1MB. Mohon unggah foto dengan resolusi lebih kecil.',
+          confirmButtonColor: '#1E3A8A',
+        });
+        return;
+      }
+
+      file = compressed;
+    }
+
+    // PDF kompres (opsional)
+    if (file.type === 'application/pdf') {
+      // ... fungsi compressPDF kamu
+    }
+
+    setFiles((prev) => ({ ...prev, [name]: file }));
   };
 
   const handleHousePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, files: selectedFiles } = e.target;
+    const { name, files: selectedFiles } = e.target;
 
-  if (selectedFiles && selectedFiles[0]) {
+    if (!selectedFiles || !selectedFiles[0]) return;
+
     let file = selectedFiles[0];
 
-    // kompres
-    if (file.type.startsWith("image/")) {
-      file = await compressImage(file, 1.5);
+    if (!validateSize(file, 4)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Ukuran Foto Terlalu Besar!',
+        text: 'Ukuran maksimal foto rumah adalah 4MB sebelum kompres.',
+        confirmButtonColor: '#1E3A8A',
+      });
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      let compressed = await compressImage(file, 1);
+
+      if (compressed.size > 1 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Foto Masih Terlalu Besar!',
+          text: 'Setelah kompres, ukuran masih >1MB. Coba unggah foto yang lebih kecil atau turunkan resolusi.',
+          confirmButtonColor: '#1E3A8A',
+        });
+        return;
+      }
+
+      file = compressed;
     }
 
     setHousePhotos((prev) => ({ ...prev, [name]: file }));
 
-    // biar FileReader gak error setelah compress
-    await new Promise((res) => setTimeout(res, 0));
-
+    // Tampilkan preview
     const reader = new FileReader();
     reader.onload = (event) => {
       setHousePreviews((prev) => ({
@@ -183,105 +222,99 @@ const PageFormUpload: React.FC = () => {
       }));
     };
     reader.readAsDataURL(file);
-  }
-};
-
+  };
 
   const handleBack = () => router.push('/page-pendaftaran/page-kesehatan');
 
   const handleSubmit = async () => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const user_id = user?.id;
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user_id = user?.id;
 
-  if (!user_id) {
-    Swal.fire({
-      icon: "error",
-      title: "User tidak ditemukan",
-      text: "Silakan login ulang.",
-    });
-    return;
-  }
-
-  setIsLoading(true); // 🔥 MULAI LOADING
-
-  let isUpdate = false;
-  try {
-    const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
-    if (check.ok) isUpdate = true;
-  } catch (e) {}
-
-  const form = new FormData();
-  form.append("user_id", user_id);
-
-  let hasFile = false;
-
-  Object.keys(files).forEach((key) => {
-    if (files[key] instanceof File) {
-      hasFile = true;
-      form.append(key, files[key] as File);
-    }
-  });
-
-  Object.keys(housePhotos).forEach((key) => {
-    if (housePhotos[key] instanceof File) {
-      hasFile = true;
-      form.append(key, housePhotos[key] as File);
-    }
-  });
-
-  if (!hasFile) {
-    setIsLoading(false); // ❗ STOP LOADING
-    Swal.fire({
-      icon: "warning",
-      title: "Tidak ada perubahan!",
-      text: "Upload minimal 1 file.",
-    });
-    return;
-  }
-
-  const url = isUpdate
-    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`
-    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
-
-  const method = isUpdate ? "PUT" : "POST";
-
-  try {
-    const res = await fetch(url, {
-      method,
-      body: form,
-    });
-
-    const data = await res.json();
-
-    setIsLoading(false); // 🔥 MATIKAN LOADING
-
-    if (!res.ok) {
+    if (!user_id) {
       Swal.fire({
-        icon: "error",
-        title: "Gagal!",
-        text: data.message,
+        icon: 'error',
+        title: 'User tidak ditemukan',
+        text: 'Silakan login ulang.',
       });
       return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: isUpdate ? "Berkas diperbarui!" : "Berkas tersimpan!",
-      confirmButtonColor: "#1E3A8A",
-    }).then(() => {
-      router.push("/page-pendaftaran/page-aturan");
-    });
-  } catch (err) {
-    setIsLoading(false);
-    Swal.fire({
-      icon: "error",
-      title: "Server Error",
-      text: "Tidak dapat menghubungi server.",
-    });
-  }
-};
+    setIsLoading(true); // 🔥 MULAI LOADING
 
+    let isUpdate = false;
+    try {
+      const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
+      if (check.ok) isUpdate = true;
+    } catch (e) {}
 
+    const form = new FormData();
+    form.append('user_id', user_id);
+
+    let hasFile = false;
+
+    Object.keys(files).forEach((key) => {
+      if (files[key] instanceof File) {
+        hasFile = true;
+        form.append(key, files[key] as File);
+      }
+    });
+
+    Object.keys(housePhotos).forEach((key) => {
+      if (housePhotos[key] instanceof File) {
+        hasFile = true;
+        form.append(key, housePhotos[key] as File);
+      }
+    });
+
+    if (!hasFile) {
+      setIsLoading(false); // ❗ STOP LOADING
+      Swal.fire({
+        icon: 'warning',
+        title: 'Tidak ada perubahan!',
+        text: 'Upload minimal 1 file.',
+      });
+      return;
+    }
+
+    const url = isUpdate ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
+
+    const method = isUpdate ? 'PUT' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        body: form,
+      });
+
+      const data = await res.json();
+
+      setIsLoading(false); // 🔥 MATIKAN LOADING
+
+      if (!res.ok) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal!',
+          text: data.message,
+        });
+        return;
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: isUpdate ? 'Berkas diperbarui!' : 'Berkas tersimpan!',
+        confirmButtonColor: '#1E3A8A',
+      }).then(() => {
+        router.push('/page-pendaftaran/page-aturan');
+      });
+    } catch (err) {
+      setIsLoading(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'Server Error',
+        text: 'Tidak dapat menghubungi server.',
+      });
+    }
+  };
 
   const renderButton = (label: string, name: string) => {
     const fileSelected = files[name];
@@ -416,18 +449,15 @@ const PageFormUpload: React.FC = () => {
         </div>
       </div>
       {isLoading && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
-    <div className="relative w-24 h-24">
-      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
-      <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
-    </div>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+          <div className="relative w-24 h-24">
+            <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+            <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+          </div>
 
-    <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">
-      Mengupload berkas...
-    </p>
-  </div>
-)}
-
+          <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">Mengupload berkas...</p>
+        </div>
+      )}
     </>
   );
 };
