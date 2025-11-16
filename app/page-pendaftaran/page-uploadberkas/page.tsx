@@ -140,6 +140,11 @@ const PageFormUpload: React.FC = () => {
     if (!selectedFiles || !selectedFiles[0]) return;
 
     let file = selectedFiles[0];
+// Validasi ukuran dalam MB
+function validateSize(file: File, maxMB: number) {
+  const fileSizeMB = file.size / 1024 / 1024; // convert to MB
+  return fileSizeMB <= maxMB;
+}
 
     // HARD LIMIT sebelum kompres (misal max 4MB)
     if (!validateSize(file, 4)) {
@@ -184,6 +189,11 @@ const PageFormUpload: React.FC = () => {
     if (!selectedFiles || !selectedFiles[0]) return;
 
     let file = selectedFiles[0];
+// Validasi ukuran dalam MB
+function validateSize(file: File, maxMB: number) {
+  const fileSizeMB = file.size / 1024 / 1024; // convert to MB
+  return fileSizeMB <= maxMB;
+}
 
     if (!validateSize(file, 4)) {
       Swal.fire({
