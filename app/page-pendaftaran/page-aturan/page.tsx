@@ -10,14 +10,15 @@ const PageFormAturan: React.FC = () => {
   const router = useRouter();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(string | null)[]>([null, null, null]);
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const user_id = user?.id;
     if (!user_id) return;
-if (user.validasi_pendaftaran === "sudah") {
-    router.replace("/dashboard");
-    return;
-  }
+    if (user.validasi_pendaftaran === 'sudah') {
+      router.replace('/dashboard');
+      return;
+    }
     const loadData = async () => {
       try {
         const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}`);
@@ -74,15 +75,14 @@ if (user.validasi_pendaftaran === "sudah") {
 
     // CEK apakah sudah ada data → kalau ada, update
     let isUpdate = false;
-try {
-  const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}`);
-  const checkData = await check.json();
+    try {
+      const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}`);
+      const checkData = await check.json();
 
-  if (check.ok && Object.keys(checkData).length > 0) {
-    isUpdate = true; // hanya true jika data ditemukan
-  }
-} catch {}
-
+      if (check.ok && Object.keys(checkData).length > 0) {
+        isUpdate = true; // hanya true jika data ditemukan
+      }
+    } catch {}
 
     const payload = {
       pernyataan1: answers[0],
@@ -93,7 +93,7 @@ try {
     const url = isUpdate ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan`;
 
     const method = isUpdate ? 'PUT' : 'POST';
-
+    setIsLoading(true);
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
@@ -101,7 +101,7 @@ try {
     });
 
     const data = await res.json();
-
+    setIsLoading(false);
     if (!res.ok) {
       Swal.fire({ icon: 'error', title: 'Gagal!', text: data.message });
       return;
@@ -215,6 +215,19 @@ try {
           </div>
         </form>
       </div>
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+          <div className="relative w-24 h-24">
+            {/* Pulse outer ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+
+            {/* Inner spinning ring */}
+            <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+          </div>
+
+          <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">Menyimpan data...</p>
+        </div>
+      )}
     </>
   );
 };

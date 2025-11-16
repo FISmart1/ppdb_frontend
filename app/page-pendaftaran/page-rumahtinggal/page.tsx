@@ -21,6 +21,7 @@ interface RumahForm {
 export default function PageFormRumah() {
   const router = useRouter();
   const [isEdit, setIsEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState<RumahForm>({
     luasTanah: '',
@@ -41,26 +42,24 @@ export default function PageFormRumah() {
   });
 
   useEffect(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  if (!user?.id) return;
-if (user.validasi_pendaftaran === "sudah") {
-    router.replace("/dashboard");
-    return;
-  }
-  const fetchData = async () => {
-    const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah/${user.id}`);
-    const data = await res.json();
-
-    if (res.ok && data && Object.keys(data).length > 0) {
-
-      setIsEdit(true);
-      setFormData((prev) => ({ ...prev, ...data }));
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user?.id) return;
+    if (user.validasi_pendaftaran === 'sudah') {
+      router.replace('/dashboard');
+      return;
     }
-  };
+    const fetchData = async () => {
+      const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah/${user.id}`);
+      const data = await res.json();
 
-  fetchData();
-}, []);
+      if (res.ok && data && Object.keys(data).length > 0) {
+        setIsEdit(true);
+        setFormData((prev) => ({ ...prev, ...data }));
+      }
+    };
 
+    fetchData();
+  }, []);
 
   const inputClass = 'border border-gray-300 rounded-full px-4 py-3 text-sm sm:text-base placeholder:text-gray-500 focus:ring-2 focus:ring-[#1E3A8A] focus:outline-none w-full min-h-[48px]';
   const selectClass = 'border border-gray-300 rounded-full px-4 py-3 text-sm sm:text-base bg-white focus:ring-2 focus:ring-[#1E3A8A] focus:outline-none w-full min-h-[48px] pr-10 appearance-none';
@@ -117,61 +116,61 @@ if (user.validasi_pendaftaran === "sudah") {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const emptyFields = validateForm();
-  if (emptyFields.length > 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Data Belum Lengkap!',
-      html: `
+    const emptyFields = validateForm();
+    if (emptyFields.length > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data Belum Lengkap!',
+        html: `
         <p class="mb-2">Lengkapi kolom berikut:</p>
         <ul style="text-align:left; display:inline-block;">
           ${emptyFields.map((f) => `<li>• ${f}</li>`).join('')}
         </ul>
       `,
-      confirmButtonColor: '#1E3A8A',
-    });
-    return;
-  }
-
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-  if (!user?.id) {
-    Swal.fire({ icon: "error", title: "User tidak ditemukan!" });
-    return;
-  }
-
-  const method = isEdit ? "PUT" : "POST";
-  const url = isEdit
-    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah/${user.id}`
-    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah`;
-
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.id, ...formData }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      Swal.fire({ icon: "error", title: "Gagal!", text: data.message });
+        confirmButtonColor: '#1E3A8A',
+      });
       return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: isEdit ? "Data diperbarui!" : "Data tersimpan!",
-      confirmButtonColor: "#1E3A8A",
-    }).then(() => router.push("/page-pendaftaran/page-kesehatan"));
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user?.id) {
+      Swal.fire({ icon: 'error', title: 'User tidak ditemukan!' });
+      return;
+    }
 
-  } catch (err) {
-    Swal.fire({ icon: "error", title: "Server error!" });
-  }
-};
+    setIsLoading(true); // 🔵 START LOADING
 
+    const method = isEdit ? 'PUT' : 'POST';
+    const url = isEdit ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah/${user.id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-rumah`;
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, ...formData }),
+      });
+
+      const data = await res.json();
+
+      setIsLoading(false); // 🔵 STOP LOADING
+
+      if (!res.ok) {
+        Swal.fire({ icon: 'error', title: 'Gagal!', text: data.message });
+        return;
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: isEdit ? 'Data diperbarui!' : 'Data tersimpan!',
+        confirmButtonColor: '#1E3A8A',
+      }).then(() => router.push('/page-pendaftaran/page-kesehatan'));
+    } catch (err) {
+      setIsLoading(false);
+      Swal.fire({ icon: 'error', title: 'Server error!' });
+    }
+  };
 
   const handleBack = () => router.push('/page-pendaftaran/page-orangtua');
 
@@ -423,6 +422,19 @@ if (user.validasi_pendaftaran === "sudah") {
           animation: fadeIn 0.25s ease-in-out;
         }
       `}</style>
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+          <div className="relative w-24 h-24">
+            {/* Outer pulse ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+
+            {/* Inner spinning ring */}
+            <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+          </div>
+
+          <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">Menyimpan data...</p>
+        </div>
+      )}
     </>
   );
 }

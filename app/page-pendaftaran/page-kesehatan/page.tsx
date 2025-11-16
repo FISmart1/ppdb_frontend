@@ -20,7 +20,7 @@ interface KesehatanForm {
 const PageFormKesehatan: React.FC = () => {
   const router = useRouter();
   const [isEdit, setIsEdit] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false)
   // State untuk input dan mode "lainnya"
   const [isMenularLainnya, setIsMenularLainnya] = useState(false);
   const [isNonMenularLainnya, setIsNonMenularLainnya] = useState(false);
@@ -175,7 +175,7 @@ const exists = check.ok && Object.keys(resCheck).length > 0;
 
     const method = exists ? 'PUT' : 'POST';
     const url = exists ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-kesehatan/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-kesehatan`;
-
+setIsLoading(true);
     try {
       const res = await fetch(url, {
         method,
@@ -187,7 +187,7 @@ const exists = check.ok && Object.keys(resCheck).length > 0;
       });
 
       const data = await res.json();
-
+setIsLoading(false);
       if (!res.ok) {
         return Swal.fire({
           icon: 'error',
@@ -206,6 +206,7 @@ const exists = check.ok && Object.keys(resCheck).length > 0;
         router.push('/page-pendaftaran/page-uploadberkas');
       });
     } catch (err) {
+      setIsLoading(false);
       Swal.fire({
         icon: 'error',
         title: 'Kesalahan Server',
@@ -381,6 +382,21 @@ const exists = check.ok && Object.keys(resCheck).length > 0;
           </div>
         </form>
       </div>
+      {isLoading && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+    <div className="relative w-24 h-24">
+      {/* Pulse outer ring */}
+      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+
+      {/* Inner spinning ring */}
+      <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+    </div>
+
+    <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">
+      Menyimpan data...
+    </p>
+  </div>
+)}
     </>
   );
 };

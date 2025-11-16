@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import 'animate.css';
@@ -28,7 +28,8 @@ interface PrestasiForm {
 
 const PageFormPrestasi: React.FC = () => {
   const router = useRouter();
-const [isEdit, setIsEdit] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState<PrestasiForm>({
     math: { s3: '', s4: '', s5: '' },
@@ -44,8 +45,6 @@ const [isEdit, setIsEdit] = useState(false);
     hobby: '',
     special: '',
   });
-
-  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field?: keyof PrestasiForm, semester?: keyof SemesterScore) => {
     const { name, value } = e.target;
@@ -63,26 +62,25 @@ const [isEdit, setIsEdit] = useState(false);
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-useEffect(() => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  if (!user?.id) return;
-if (user.validasi_pendaftaran === "sudah") {
-    router.replace("/dashboard");
-    return;
-  }
-  const fetchData = async () => {
-    const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi/${user.id}`);
-    const data = await res.json();
-
-    if (data && data.id) {
-      setIsEdit(true);
-      setFormData(normalizePrestasi(data));
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user?.id) return;
+    if (user.validasi_pendaftaran === 'sudah') {
+      router.replace('/dashboard');
+      return;
     }
-  };
+    const fetchData = async () => {
+      const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi/${user.id}`);
+      const data = await res.json();
 
-  fetchData();
-}, []);
+      if (data && data.id) {
+        setIsEdit(true);
+        setFormData(normalizePrestasi(data));
+      }
+    };
 
+    fetchData();
+  }, []);
 
   const validateForm = () => {
     const emptyFields: string[] = [];
@@ -117,99 +115,103 @@ if (user.validasi_pendaftaran === "sudah") {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const emptyFields = validateForm();
-  if (emptyFields.length > 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Data Belum Lengkap!',
-      html: `
+    const emptyFields = validateForm();
+    if (emptyFields.length > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data Belum Lengkap!',
+        html: `
         <p class="mb-2">Lengkapi dulu kolom berikut:</p>
         <ul style="text-align:left; display:inline-block;">
           ${emptyFields.map((f) => `<li>• ${f}</li>`).join('')}
         </ul>
       `,
-      confirmButtonColor: '#1E3A8A',
-    });
-    return;
-  }
+        confirmButtonColor: '#1E3A8A',
+      });
+      return;
+    }
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const payload = {
-    user_id: user.id,
-    ...formData
+    const payload = {
+      user_id: user.id,
+      ...formData,
+    };
+
+    delete (payload as any).id;
+    delete (payload as any).created_at;
+
+    const url = isEdit ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi/${user.id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi`;
+
+    const method = isEdit ? 'PUT' : 'POST';
+
+    setIsLoading(true); // 🔥 MULAI LOADING
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      setIsLoading(false); // 🔥 STOP LOADING
+
+      if (res.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: isEdit ? 'Data prestasi berhasil diperbarui!' : 'Data prestasi tersimpan!',
+          confirmButtonColor: '#1E3A8A',
+        }).then(() => router.push('/page-pendaftaran/page-orangtua'));
+      } else {
+        Swal.fire('Gagal!', data.message, 'error');
+      }
+    } catch (err) {
+      setIsLoading(false);
+      Swal.fire('Error!', 'Terjadi kesalahan server.', 'error');
+    }
   };
 
-  // Jangan ikut kirim id atau created_at saat update
-  delete (payload as any).id;
-  delete (payload as any).created_at;
+  const normalizePrestasi = (data: any) => {
+    return {
+      math: {
+        s3: data.math_s3 || '',
+        s4: data.math_s4 || '',
+        s5: data.math_s5 || '',
+      },
+      indo: {
+        s3: data.indo_s3 || '',
+        s4: data.indo_s4 || '',
+        s5: data.indo_s5 || '',
+      },
+      english: {
+        s3: data.english_s3 || '',
+        s4: data.english_s4 || '',
+        s5: data.english_s5 || '',
+      },
+      ipa: {
+        s3: data.ipa_s3 || '',
+        s4: data.ipa_s4 || '',
+        s5: data.ipa_s5 || '',
+      },
+      pai: {
+        s3: data.pai_s3 || '',
+        s4: data.pai_s4 || '',
+        s5: data.pai_s5 || '',
+      },
 
-  const url = isEdit
-    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi/${user.id}` // UPDATE
-    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-prestasi`;           // INSERT
-
-  const method = isEdit ? "PUT" : "POST";
-
-  const res = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-
-  if (res.ok) {
-    Swal.fire({
-      icon: "success",
-      title: isEdit ? "Data prestasi berhasil diperbarui!" : "Data prestasi tersimpan!",
-      confirmButtonColor: "#1E3A8A",
-    }).then(() => router.push("/page-pendaftaran/page-orangtua"));
-  } else {
-    Swal.fire("Gagal!", data.message, "error");
-  }
-};
-
-const normalizePrestasi = (data: any) => {
-  return {
-    math: {
-      s3: data.math_s3 || "",
-      s4: data.math_s4 || "",
-      s5: data.math_s5 || "",
-    },
-    indo: {
-      s3: data.indo_s3 || "",
-      s4: data.indo_s4 || "",
-      s5: data.indo_s5 || "",
-    },
-    english: {
-      s3: data.english_s3 || "",
-      s4: data.english_s4 || "",
-      s5: data.english_s5 || "",
-    },
-    ipa: {
-      s3: data.ipa_s3 || "",
-      s4: data.ipa_s4 || "",
-      s5: data.ipa_s5 || "",
-    },
-    pai: {
-      s3: data.pai_s3 || "",
-      s4: data.pai_s4 || "",
-      s5: data.pai_s5 || "",
-    },
-
-    foreignLanguage: data.foreignLanguage || "",
-    hafalan: data.hafalan || "",
-    achievement: data.achievement || "",
-    organization: data.organization || "",
-    dream: data.dream || "",
-    hobby: data.hobby || "",
-    special: data.special || "",
+      foreignLanguage: data.foreignLanguage || '',
+      hafalan: data.hafalan || '',
+      achievement: data.achievement || '',
+      organization: data.organization || '',
+      dream: data.dream || '',
+      hobby: data.hobby || '',
+      special: data.special || '',
+    };
   };
-};
-
-
 
   const handleBack = () => router.push('/page-pendaftaran');
 
@@ -328,6 +330,22 @@ const normalizePrestasi = (data: any) => {
           </div>
         </form>
       </div>
+      {isLoading && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+    <div className="relative w-24 h-24">
+      {/* Pulse outer ring */}
+      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+
+      {/* Inner spinning ring */}
+      <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+    </div>
+
+    <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">
+      Menyimpan data...
+    </p>
+  </div>
+)}
+
     </>
   );
 };
