@@ -776,7 +776,7 @@ export function DashboardLayout() {
                       }
                     }}
                     disabled={loadingCheck}
-                    className={`mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2 rounded-full font-medium transition
+                    className={`cursor-pointer mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2 rounded-full font-medium transition
     ${isFormComplete ? 'bg-green-400 text-gray-200' : 'bg-[#1E3A8A] text-white hover:bg-[#162d66]'}
   `}
                   >
