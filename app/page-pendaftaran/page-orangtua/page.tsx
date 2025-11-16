@@ -74,7 +74,10 @@ const [isEdit, setIsEdit] = useState(false);
   useEffect(() => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   if (!user?.id) return;
-
+if (user.validasi_pendaftaran === "sudah") {
+    router.replace("/dashboard");
+    return;
+  }
   const fetchData = async () => {
     const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-orangtua/${user.id}`);
     const data = await res.json();

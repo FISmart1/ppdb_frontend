@@ -14,7 +14,10 @@ const PageFormAturan: React.FC = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const user_id = user?.id;
     if (!user_id) return;
-
+if (user.validasi_pendaftaran === "sudah") {
+    router.replace("/dashboard");
+    return;
+  }
     const loadData = async () => {
       try {
         const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-aturan/${user_id}`);
