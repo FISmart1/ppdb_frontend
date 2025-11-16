@@ -101,8 +101,8 @@ export function DashboardLayout() {
   const toastRef = useRef<HTMLDivElement | null>(null);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-const NOTIF_ENDPOINT = `https://backend_spmb.smktibazma.sch.id/notifikasi/user/${user.id}`;
- // ganti jika perlu
+  const NOTIF_ENDPOINT = `https://backend_spmb.smktibazma.sch.id/notifikasi/user/${user.id}`;
+  // ganti jika perlu
 
   const handleLogout = () => {
     localStorage.removeItem('admin_logged_in');
@@ -219,7 +219,6 @@ const NOTIF_ENDPOINT = `https://backend_spmb.smktibazma.sch.id/notifikasi/user/$
       document.body.style.overflow = '';
     };
   }, [showModal]);
-
 
   useEffect(() => {
     gsap.fromTo('.step-card', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1 });
@@ -346,16 +345,14 @@ const NOTIF_ENDPOINT = `https://backend_spmb.smktibazma.sch.id/notifikasi/user/$
   }, [isSidebarOpen]);
 
   useEffect(() => {
-  if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
-  const token = localStorage.getItem("token");
-  if (!token) {
-    router.replace("/login");
-    return;
-  }
-
-}, []);  // ← WAJIB KOSONG
-
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.replace('/login');
+      return;
+    }
+  }, []); // ← WAJIB KOSONG
 
   return (
     <div className="dashboard-container min-h-screen bg-gray-50 flex">
@@ -770,14 +767,20 @@ const NOTIF_ENDPOINT = `https://backend_spmb.smktibazma.sch.id/notifikasi/user/$
                   </div>
                   <button
                     onClick={() => {
-                      if (!isFormComplete) router.push('/page-pendaftaran');
+                      if (loadingCheck) return; // cegah klik saat loading
+
+                      if (isFormComplete) {
+                        router.push('/riwayat-lamaran'); // 🔥 kalau sudah complete
+                      } else {
+                        router.push('/page-pendaftaran'); // 🔥 kalau belum complete
+                      }
                     }}
-                    disabled={isFormComplete}
+                    disabled={loadingCheck}
                     className={`mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2 rounded-full font-medium transition
     ${isFormComplete ? 'bg-green-400 text-gray-200' : 'bg-[#1E3A8A] text-white hover:bg-[#162d66]'}
   `}
                   >
-                    {loadingCheck ? 'Memeriksa...' : isFormComplete ? 'Selamat anda telah terdaftar' : 'Daftar Sekarang!'}
+                    {loadingCheck ? 'Memeriksa...' : isFormComplete ? 'Selamat anda telah terdaftar, klik untuk periksa' : 'Daftar Sekarang!'}
                   </button>
                 </div>
                 <div className="mt-4 border-b border-gray-300"></div>
