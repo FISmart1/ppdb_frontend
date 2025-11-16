@@ -132,7 +132,7 @@ export function DashboardLayout() {
       id: 1,
       image: '/gambar2.png',
       title: 'Pendaftaran',
-      date: '15 Nov - 27 Des 2025',
+      date: '15 Nov - 28 Des 2025',
       desc: 'Calon Murid mengisi formulir pendaftaran online atau langsung di sekolah untuk memulai proses seleksi.',
     },
     {
