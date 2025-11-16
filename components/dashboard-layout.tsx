@@ -100,7 +100,9 @@ export function DashboardLayout() {
   const lastNotifIdsRef = useRef<Set<string | number>>(new Set());
   const toastRef = useRef<HTMLDivElement | null>(null);
 
-  const NOTIF_ENDPOINT = 'https://api.smkbazma.sch.id/notifikasi'; // ganti jika perlu
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+const NOTIF_ENDPOINT = `https://backend_spmb.smktibazma.sch.id/notifikasi/user/${user.id}`;
+ // ganti jika perlu
 
   const handleLogout = () => {
     localStorage.removeItem('admin_logged_in');
