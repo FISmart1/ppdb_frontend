@@ -780,7 +780,7 @@ export function DashboardLayout() {
     ${isFormComplete ? 'bg-green-400 text-gray-200' : 'bg-[#1E3A8A] text-white hover:bg-[#162d66]'}
   `}
                   >
-                    {loadingCheck ? 'Memeriksa...' : isFormComplete ? 'Selamat anda telah terdaftar, klik untuk periksa' : 'Daftar Sekarang!'}
+                    {loadingCheck ? 'Memeriksa...' : isFormComplete ? 'Pendaftaran sukses — klik untuk melihat!' : 'Daftar Sekarang!'}
                   </button>
                 </div>
                 <div className="mt-4 border-b border-gray-300"></div>
