@@ -11,7 +11,8 @@ const PageFormUpload: React.FC = () => {
   const [files, setFiles] = useState<{ [key: string]: File | null }>({});
   const [housePhotos, setHousePhotos] = useState<{ [key: string]: File | null }>({});
   const [housePreviews, setHousePreviews] = useState<{ [key: string]: string | null }>({});
-  
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const requiredFiles = [
     { name: 'rapor', label: 'Dokumen Nilai Rapot Semester 3–5' },
@@ -201,11 +202,12 @@ const PageFormUpload: React.FC = () => {
     return;
   }
 
-  // Cek apakah data sudah ada → tentukan POST/PUT
+  setIsLoading(true); // 🔥 MULAI LOADING
+
   let isUpdate = false;
   try {
     const check = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`);
-    if (check.ok) isUpdate = true; // data sudah ada → update
+    if (check.ok) isUpdate = true;
   } catch (e) {}
 
   const form = new FormData();
@@ -228,6 +230,7 @@ const PageFormUpload: React.FC = () => {
   });
 
   if (!hasFile) {
+    setIsLoading(false); // ❗ STOP LOADING
     Swal.fire({
       icon: "warning",
       title: "Tidak ada perubahan!",
@@ -240,7 +243,7 @@ const PageFormUpload: React.FC = () => {
     ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}`
     : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
 
-  const method = isUpdate ? "PUT" : "POST"; // 🔥 otomatis
+  const method = isUpdate ? "PUT" : "POST";
 
   try {
     const res = await fetch(url, {
@@ -249,6 +252,8 @@ const PageFormUpload: React.FC = () => {
     });
 
     const data = await res.json();
+
+    setIsLoading(false); // 🔥 MATIKAN LOADING
 
     if (!res.ok) {
       Swal.fire({
@@ -267,6 +272,7 @@ const PageFormUpload: React.FC = () => {
       router.push("/page-pendaftaran/page-aturan");
     });
   } catch (err) {
+    setIsLoading(false);
     Swal.fire({
       icon: "error",
       title: "Server Error",
@@ -274,6 +280,7 @@ const PageFormUpload: React.FC = () => {
     });
   }
 };
+
 
 
   const renderButton = (label: string, name: string) => {
@@ -408,6 +415,19 @@ const PageFormUpload: React.FC = () => {
           </button>
         </div>
       </div>
+      {isLoading && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+    <div className="relative w-24 h-24">
+      <div className="absolute inset-0 rounded-full border-4 border-white/30 animate-ping"></div>
+      <div className="absolute inset-3 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+    </div>
+
+    <p className="text-white font-semibold mt-6 text-lg tracking-wide animate__animated animate__fadeIn animate__slow">
+      Mengupload berkas...
+    </p>
+  </div>
+)}
+
     </>
   );
 };
