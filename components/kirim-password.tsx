@@ -21,7 +21,7 @@ export default function SendPassword() {
     }
 
     try {
-      const res = await fetch("https://yourbackend.com/api/auth/forgot-password", {
+      const res = await fetch("http://31.97.187.114:5000/api/auth/forgot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

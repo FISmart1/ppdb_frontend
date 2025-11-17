@@ -8,7 +8,6 @@ import 'animate.css';
 interface SemesterScore {
   s3: string;
   s4: string;
-  s5: string;
 }
 
 interface PrestasiForm {
@@ -32,11 +31,11 @@ const PageFormPrestasi: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState<PrestasiForm>({
-    math: { s3: '', s4: '', s5: '' },
-    indo: { s3: '', s4: '', s5: '' },
-    english: { s3: '', s4: '', s5: '' },
-    ipa: { s3: '', s4: '', s5: '' },
-    pai: { s3: '', s4: '', s5: '' },
+    math: { s3: '', s4: ''},
+    indo: { s3: '', s4: '' },
+    english: { s3: '', s4: ''},
+    ipa: { s3: '', s4: ''},
+    pai: { s3: '', s4: ''},
     foreignLanguage: '',
     hafalan: '',
     achievement: '',
@@ -94,8 +93,8 @@ const PageFormPrestasi: React.FC = () => {
 
     for (const key of Object.keys(subjects) as (keyof PrestasiForm)[]) {
       const subject = formData[key] as SemesterScore;
-      if (!subject.s3 || !subject.s4 || !subject.s5) {
-        emptyFields.push(`Nilai ${subjects[key]} (Semester 3, 4, 5)`);
+      if (!subject.s3 || !subject.s4) {
+        emptyFields.push(`Nilai ${subjects[key]} (Semester 3, 4)`);
       }
     }
 
@@ -180,27 +179,22 @@ const PageFormPrestasi: React.FC = () => {
       math: {
         s3: data.math_s3 || '',
         s4: data.math_s4 || '',
-        s5: data.math_s5 || '',
       },
       indo: {
         s3: data.indo_s3 || '',
         s4: data.indo_s4 || '',
-        s5: data.indo_s5 || '',
       },
       english: {
         s3: data.english_s3 || '',
         s4: data.english_s4 || '',
-        s5: data.english_s5 || '',
       },
       ipa: {
         s3: data.ipa_s3 || '',
         s4: data.ipa_s4 || '',
-        s5: data.ipa_s5 || '',
       },
       pai: {
         s3: data.pai_s3 || '',
         s4: data.pai_s4 || '',
-        s5: data.pai_s5 || '',
       },
 
       foreignLanguage: data.foreignLanguage || '',
@@ -260,7 +254,7 @@ const PageFormPrestasi: React.FC = () => {
                     <th className="w-[40%] py-2 text-left px-2">Mata Pelajaran</th>
                     <th className="w-[20%] py-2 text-center px-2">Semester 3</th>
                     <th className="w-[20%] py-2 text-center px-2">Semester 4</th>
-                    <th className="w-[20%] py-2 text-center px-2">Semester 5</th>
+                    
                   </tr>
                 </thead>
 
@@ -274,7 +268,7 @@ const PageFormPrestasi: React.FC = () => {
                   ].map((item) => (
                     <tr key={item.key} className="border-t hover:bg-gray-50">
                       <td className="py-2 px-2">{item.label}</td>
-                      {['s3', 's4', 's5'].map((s) => (
+                      {['s3', 's4'].map((s) => (
                         <td key={s} className="py-2 text-center">
                           <input
                             type="text"
