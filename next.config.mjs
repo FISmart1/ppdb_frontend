@@ -6,8 +6,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
+ images: {
     unoptimized: true,
+    domains: ['https://backend_spmb.smktibazma.sch.id'],
   },
 }
 

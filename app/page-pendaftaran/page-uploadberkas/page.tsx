@@ -23,7 +23,7 @@ const PageFormUpload: React.FC = () => {
     { name: 'bpjs', label: 'Scan / Foto Kartu BPJS atau KIS' },
     { name: 'rekomendasi_surat', label: 'Upload Surat Rekomendasi' },
     { name: 'tagihan_listrik', label: 'Upload Bukti Pembayaran Listrik' },
-    { name: 'reels', label: 'Upload Bukti Link Reels' },
+    { name: 'reels', label: 'Upload Bukti Posting Video Perkenalan Instagram' },
   ];
 
   const housePhotoTypes = [
