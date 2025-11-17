@@ -57,6 +57,16 @@ export default function RiwayatLamaran() {
           parentAddress: data.orangtua?.ayah_alamat,
 
           // --- PRESTASI ---
+          mat3: data.pres?.math_s3,
+          mat4: data.pres?.math_s4,
+          indo3: data.pres?.indo_s3,
+          indo4: data.pres?.indo_s4,
+          eng3: data.pres?.english_s3,
+          eng4: data.pres?.english_s4,
+          ipa3: data.pres?.ipa_s3,
+          ipa4: data.pres?.ipa_s4,
+          pai3: data.pres?.pai_s3,
+          pai4: data.pres?.pai_s4,
           achievementField: data.pres?.achievement,
           achievementName: data.pres?.hafalan,
           achievementLevel: data.pres?.organization,
@@ -192,7 +202,7 @@ export default function RiwayatLamaran() {
 
         {/* PRESTASI */}
         <Section title="Prestasi & Minat" icon={<Trophy className="w-5 h-5" />}>
-          <div className="space-y-2 text-gray-700 text-sm sm:text-base">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-gray-700 text-sm sm:text-base">
             <p>
               <strong>Prestasi:</strong> {formData.achievementField || '-'}
             </p>
@@ -204,6 +214,21 @@ export default function RiwayatLamaran() {
             </p>
             <p>
               <strong>Hobi:</strong> {formData.majorInterest || '-'}
+            </p>
+            <p>
+              <strong>Matematika :</strong> {formData.mat3 && formData.mat4 ? ((Number(formData.mat3) + Number(formData.mat4)) / 2).toFixed(2) : '-'}
+            </p>
+            <p>
+              <strong>Indonesia :</strong> {formData.indo3 && formData.indo4 ? ((Number(formData.indo3) + Number(formData.indo4)) / 2).toFixed(2) : '-'}
+            </p>
+            <p>
+              <strong>English :</strong> {formData.eng3 && formData.eng4 ? ((Number(formData.eng3) + Number(formData.eng4)) / 2).toFixed(2) : '-'}
+            </p>
+            <p>
+              <strong>Ipa :</strong> {formData.ipa3 && formData.ipa4 ? ((Number(formData.ipa3) + Number(formData.ipa4)) / 2).toFixed(2) : '-'}
+            </p>
+            <p>
+              <strong>PAI :</strong> {formData.pai3 && formData.pai4 ? ((Number(formData.pai3) + Number(formData.pai4)) / 2).toFixed(2) : '-'}
             </p>
           </div>
         </Section>
