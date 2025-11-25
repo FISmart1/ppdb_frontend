@@ -695,10 +695,13 @@ export function DashboardLayout() {
                       </div>
 
                       {/* Tombol tutup */}
-                      <div className="flex justify-center mt-8">
-                        <button onClick={() => setShowModal(false)} className="px-6 py-2 bg-[#1E3A8A] text-white rounded-full hover:bg-[#162c6e] transition">
+                      <div className="flex justify-center mt-8 gap-4">
+                        <button onClick={() => setShowModal(false)} className="px-6 py-2 text-[#1E3A8A] rounded-full cursor-pointer transition">
                           Saya Mengerti
                         </button>
+                        <a href='/page-pendaftaran' className="px-6 py-2 bg-[#1E3A8A] text-white rounded-full hover:bg-[#162c6e] transition">
+                          Daftar Sekarag
+                        </a>
                       </div>
                     </div>
                   </div>
