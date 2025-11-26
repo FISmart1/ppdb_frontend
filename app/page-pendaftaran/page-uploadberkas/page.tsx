@@ -252,7 +252,9 @@ const PageFormUpload: React.FC = () => {
     setIsLoading(true); // 🔥 MULAI LOADING
     // ⛔ Wajibkan semua foto rumah terisi
     for (const h of housePhotoTypes) {
-      if (!housePhotos[h.name] || !housePhotos[h.name] instanceof File) {
+      const file = housePhotos[h.name];
+
+      if (!file || !(file instanceof File)) {
         Swal.fire({
           icon: 'warning',
           title: 'Foto rumah belum lengkap',
