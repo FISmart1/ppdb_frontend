@@ -61,7 +61,7 @@ const PageFormUpload: React.FC = () => {
         const loadedPreviews: any = {};
         housePhotoTypes.forEach((h) => {
           if (data[h.name]) {
-            loadedHouse[h.name] = { name: data[h.name] };
+            loadedHouse[h.name] = data[h.name]; // string
             loadedPreviews[h.name] = `https://backend_spmb.smktibazma.sch.id/uploads/${data[h.name]}`;
           }
         });
@@ -140,11 +140,11 @@ const PageFormUpload: React.FC = () => {
     if (!selectedFiles || !selectedFiles[0]) return;
 
     let file = selectedFiles[0];
-// Validasi ukuran dalam MB
-function validateSize(file: File, maxMB: number) {
-  const fileSizeMB = file.size / 1024 / 1024; // convert to MB
-  return fileSizeMB <= maxMB;
-}
+    // Validasi ukuran dalam MB
+    function validateSize(file: File, maxMB: number) {
+      const fileSizeMB = file.size / 1024 / 1024; // convert to MB
+      return fileSizeMB <= maxMB;
+    }
 
     // HARD LIMIT sebelum kompres (misal max 4MB)
     if (!validateSize(file, 4)) {
@@ -189,11 +189,11 @@ function validateSize(file: File, maxMB: number) {
     if (!selectedFiles || !selectedFiles[0]) return;
 
     let file = selectedFiles[0];
-// Validasi ukuran dalam MB
-function validateSize(file: File, maxMB: number) {
-  const fileSizeMB = file.size / 1024 / 1024; // convert to MB
-  return fileSizeMB <= maxMB;
-}
+    // Validasi ukuran dalam MB
+    function validateSize(file: File, maxMB: number) {
+      const fileSizeMB = file.size / 1024 / 1024; // convert to MB
+      return fileSizeMB <= maxMB;
+    }
 
     if (!validateSize(file, 4)) {
       Swal.fire({
@@ -250,6 +250,18 @@ function validateSize(file: File, maxMB: number) {
     }
 
     setIsLoading(true); // 🔥 MULAI LOADING
+    // ⛔ Wajibkan semua foto rumah terisi
+    for (const h of housePhotoTypes) {
+      if (!housePhotos[h.name] || !housePhotos[h.name] instanceof File) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Foto rumah belum lengkap',
+          text: `Foto ${h.label} wajib diupload.`,
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
 
     let isUpdate = false;
     try {
@@ -270,9 +282,16 @@ function validateSize(file: File, maxMB: number) {
     });
 
     Object.keys(housePhotos).forEach((key) => {
-      if (housePhotos[key] instanceof File) {
-        hasFile = true;
-        form.append(key, housePhotos[key] as File);
+      const value = housePhotos[key];
+
+      if (value instanceof File) {
+        form.append(key, value);
+      } else if (value && value.name) {
+        // kirim nama lama agar backend tidak menghapus
+        form.append(key, value.name);
+      } else {
+        // jika kosong, kirim string kosong
+        form.append(key, '');
       }
     });
 

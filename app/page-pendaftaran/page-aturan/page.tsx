@@ -123,8 +123,8 @@ const PageFormAturan: React.FC = () => {
   // 🟦 Pernyataan udah disamain persis seperti versi "Section Aturan Sekolah"
   const pernyataanList = [
     `Saya dengan sungguh-sungguh menyatakan bahwa:
-1. Seluruh data dan dokumen yang saya lampirkan dalam berkas pendaftaran PPDB SMK TI BAZMA TA 2025-2026 adalah benar;
-2. Saya mendukung anak/tanggungan saya untuk mengikuti seluruh rangkaian seleksi PPDB SMK TI BAZMA yang telah ditetapkan;
+1. Seluruh data dan dokumen yang saya lampirkan dalam berkas pendaftaran SPMB SMK TI BAZMA TA 2026-2027 adalah benar;
+2. Saya mendukung anak/tanggungan saya untuk mengikuti seluruh rangkaian seleksi SPMB SMK TI BAZMA yang telah ditetapkan;
 3. Jika anak/tanggungan saya diterima, saya memberi izin untuk tinggal di asrama selama masa pendidikan.
 (pilihan Ya, atau Tidak)`,
     `Saya dengan sungguh-sungguh menyatakan bahwa:
