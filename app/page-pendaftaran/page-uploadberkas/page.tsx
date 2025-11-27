@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, CheckCircle, Image } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -76,6 +76,9 @@ const PageFormUpload: React.FC = () => {
 
     fetchData();
   }, []);
+  const rumahDepanRef = useRef<HTMLInputElement>(null);
+  const ruangTamuRef = useRef<HTMLInputElement>(null);
+  const kamarRef = useRef<HTMLInputElement>(null);
 
   const compressPDF = async (file: File, maxSizeMB = 1): Promise<File> => {
     const buffer = new Uint8Array(await file.arrayBuffer());
@@ -248,6 +251,7 @@ const PageFormUpload: React.FC = () => {
       });
       return;
     }
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     setIsLoading(true); // 🔥 MULAI LOADING
     // ⛔ Wajibkan semua foto rumah terisi
@@ -272,6 +276,19 @@ const PageFormUpload: React.FC = () => {
     } catch (e) {}
 
     const form = new FormData();
+    // 🔥 ambil file langsung dari input, bukan dari state
+    if (rumahDepanRef.current?.files?.[0]) {
+      form.append('rumah_depan', rumahDepanRef.current.files[0]);
+    }
+
+    if (ruangTamuRef.current?.files?.[0]) {
+      form.append('rumah_ruangtamu', ruangTamuRef.current.files[0]);
+    }
+
+    if (kamarRef.current?.files?.[0]) {
+      form.append('rumah_kamar', kamarRef.current.files[0]);
+    }
+
     form.append('user_id', user_id);
 
     let hasFile = false;
