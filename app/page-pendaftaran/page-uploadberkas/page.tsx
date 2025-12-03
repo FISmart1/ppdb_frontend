@@ -24,6 +24,9 @@ const PageFormUpload: React.FC = () => {
     { name: 'rekomendasi_surat', label: 'Upload Surat Rekomendasi' },
     { name: 'tagihan_listrik', label: 'Upload Bukti Pembayaran Listrik' },
     { name: 'reels', label: 'Upload Bukti Posting Video Perkenalan Instagram' },
+    { name: 'rumah_depan', label: 'Tampak Depan' },
+    { name: 'rumah_ruangtamu', label: 'Dapur / Kamar mandi' },
+    { name: 'rumah_kamar', label: 'Kamar Tidur' },
   ];
 
   const housePhotoTypes = [
@@ -186,56 +189,7 @@ const PageFormUpload: React.FC = () => {
     setFiles((prev) => ({ ...prev, [name]: file }));
   };
 
-  const handleHousePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files: selectedFiles } = e.target;
 
-    if (!selectedFiles || !selectedFiles[0]) return;
-
-    let file = selectedFiles[0];
-    // Validasi ukuran dalam MB
-    function validateSize(file: File, maxMB: number) {
-      const fileSizeMB = file.size / 1024 / 1024; // convert to MB
-      return fileSizeMB <= maxMB;
-    }
-
-    if (!validateSize(file, 4)) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Ukuran Foto Terlalu Besar!',
-        text: 'Ukuran maksimal foto rumah adalah 4MB sebelum kompres.',
-        confirmButtonColor: '#1E3A8A',
-      });
-      return;
-    }
-
-    if (file.type.startsWith('image/')) {
-      let compressed = await compressImage(file, 1);
-
-      if (compressed.size > 1 * 1024 * 1024) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Foto Masih Terlalu Besar!',
-          text: 'Setelah kompres, ukuran masih >1MB. Coba unggah foto yang lebih kecil atau turunkan resolusi.',
-          confirmButtonColor: '#1E3A8A',
-        });
-        return;
-      }
-
-      file = compressed;
-    }
-
-    setHousePhotos((prev) => ({ ...prev, [name]: file }));
-
-    // Tampilkan preview
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setHousePreviews((prev) => ({
-        ...prev,
-        [name]: event.target?.result as string,
-      }));
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleBack = () => router.push('/page-pendaftaran/page-kesehatan');
 
@@ -254,20 +208,6 @@ const PageFormUpload: React.FC = () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     setIsLoading(true); // 🔥 MULAI LOADING
-    // ⛔ Wajibkan semua foto rumah terisi
-    for (const h of housePhotoTypes) {
-      const file = housePhotos[h.name];
-
-      if (!file || !(file instanceof File)) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Foto rumah belum lengkap',
-          text: `Foto ${h.label} wajib diupload.`,
-        });
-        setIsLoading(false);
-        return;
-      }
-    }
 
     let isUpdate = false;
     try {
@@ -447,10 +387,6 @@ const PageFormUpload: React.FC = () => {
 
         {/* Upload Foto Rumah */}
         <div className="mb-6 mt-6">
-          <h2 className="font-semibold text-gray-700 mb-6 flex items-center gap-2 text-base sm:text-lg">
-            <Image className="w-5 h-5 text-[#1E3A8A]" />
-            Upload Foto Rumah (Lengkapi Semua Bagian)
-          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {housePhotoTypes.map((photo) => (
               <div key={photo.name} className="flex flex-col gap-4">
@@ -458,26 +394,6 @@ const PageFormUpload: React.FC = () => {
                 <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition overflow-hidden">
                   <div className="bg-gray-50 text-center py-2 font-semibold text-sm text-[#1E3A8A] border-b">Contoh: {photo.label}</div>
                   <img src={photo.example} alt={`Contoh ${photo.label}`} className="w-full h-56 sm:h-64 object-cover rounded-lg" />
-                </div>
-
-                {/* Upload Foto */}
-                <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition overflow-hidden flex flex-col items-center p-3">
-                  {housePreviews[photo.name] ? (
-                    <img src={housePreviews[photo.name]!} alt={`Preview ${photo.label}`} className="w-full h-56 sm:h-64 object-cover rounded-lg border border-green-200" />
-                  ) : (
-                    <div className="w-full h-56 sm:h-64 flex items-center justify-center text-gray-400 border border-dashed border-gray-300 rounded-lg text-sm">Belum ada foto</div>
-                  )}
-                  <p className="text-sm font-semibold text-gray-700 mt-3 mb-2 text-center">{photo.label}</p>
-                  <label
-                    htmlFor={photo.name}
-                    className={`cursor-pointer text-xs sm:text-sm flex items-center justify-center gap-2 border px-3 py-1.5 rounded-full w-full sm:w-auto text-center ${
-                      housePhotos[photo.name] ? 'bg-green-100 border-green-400 text-green-700' : 'bg-gray-100 border-gray-300 hover:bg-blue-50 hover:text-[#1E3A8A]'
-                    }`}
-                  >
-                    {housePhotos[photo.name] ? <CheckCircle className="w-4 h-4" /> : <Upload className="w-4 h-4" />}
-                    {housePhotos[photo.name] ? 'Sudah Diupload' : 'Upload Foto'}
-                  </label>
-                  <input id={photo.name} name={photo.name} type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={handleHousePhotoChange} />
                 </div>
               </div>
             ))}
