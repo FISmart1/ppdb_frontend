@@ -47,7 +47,7 @@ export default function RegisterForm() {
 
       const data = await res.json();
       alert(data.message);
-
+      console.log(res.json());
       if (res.ok) {
         router.push("/");
       }
