@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
@@ -8,6 +8,19 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+        setTimeout(() => {
+          const token = localStorage.getItem("token");
+    
+          if (token) {
+            router.replace("/dashboard"); 
+            return;
+          }
+    
+
+        }, 30);
+      }, []); // ← FIX
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

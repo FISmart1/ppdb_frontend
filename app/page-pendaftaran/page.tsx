@@ -39,6 +39,19 @@ const PageFormPribadi: React.FC = () => {
     livingWithCustom: '',
   });
 
+  useEffect(() => {
+      setTimeout(() => {
+        const token = localStorage.getItem("token");
+  
+        if (!token) {
+          router.replace("/"); 
+          return;
+        }
+  
+        setIsLoading(false);
+      }, 30);
+    }, []); // ← FIX
+
   // ====== GET DATA (prefill jika sudah ada) ======
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
