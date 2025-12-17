@@ -80,7 +80,7 @@ export default function RegisterForm() {
         required
       />
       <input
-        type="number"
+        type="text"
         name="no_wa"
         placeholder="Nomor Whatsapp"
         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1d2b6f] outline-none"
