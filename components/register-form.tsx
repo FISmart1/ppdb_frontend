@@ -10,7 +10,7 @@ export default function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    no_wa: "",
+    nowa: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,9 +23,9 @@ export default function RegisterForm() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { name, email, password, confirmPassword , no_wa} = formData;
+    const { name, email, password, confirmPassword , nowa} = formData;
 
-    if (!name || !email || !password || !confirmPassword || !no_wa) {
+    if (!name || !email || !password || !confirmPassword || !nowa) {
       return alert("Semua field wajib diisi!");
     }
 
@@ -41,7 +41,7 @@ export default function RegisterForm() {
           name,
           email,
           password,
-          no_wa,
+          nowa,
         }),
       });
 
@@ -81,10 +81,10 @@ export default function RegisterForm() {
       />
       <input
         type="text"
-        name="no_wa"
+        name="nowa"
         placeholder="Nomor Whatsapp"
         className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1d2b6f] outline-none"
-        value={formData.no_wa}
+        value={formData.nowa}
         onChange={handleChange}
         required
       />
