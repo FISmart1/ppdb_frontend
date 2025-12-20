@@ -9,27 +9,22 @@ import pako from 'pako';
 const PageFormUpload: React.FC = () => {
   const router = useRouter();
   const [files, setFiles] = useState<{ [key: string]: File | null }>({});
-  const [housePhotos, setHousePhotos] = useState<{ [key: string]: File | null }>({});
-  const [housePreviews, setHousePreviews] = useState<{ [key: string]: string | null }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const requiredFiles = [
-    // 📄 DOKUMEN
-    { name: 'rapor', label: 'Dokumen Nilai Rapot Semester 3–5', required: true, type: 'file' },
-    { name: 'sktm', label: 'Surat Keterangan Tidak Mampu (SKTM)', required: true, type: 'file' },
-    { name: 'ss_ig', label: 'Screenshot Follow IG @smktibazma', required: true, type: 'file' },
-    { name: 'kk', label: 'Kartu Keluarga (KK)', required: true, type: 'file' },
-    { name: 'foto', label: 'Pas Foto 3x4', required: true, type: 'file' },
-    { name: 'kip', label: 'Bukti KIP (jika ada)', required: false, type: 'file' },
-    { name: 'bpjs', label: 'Scan BPJS / KIS', required: true, type: 'file' },
-    { name: 'rekomendasi_surat', label: 'Upload Surat Rekomendasi', required: true, type: 'file' },
-    { name: 'tagihan_listrik', label: 'Upload Bukti Pembayaran Listrik', required: true, type: 'file' },
-    { name: 'reels', label: 'Upload Bukti Posting Video IG', required: true, type: 'file' },
-
-    // 🏠 FOTO RUMAH
-    { name: 'rumah_depan', label: 'Rumah Tampak Depan', required: true, type: 'house' },
-    { name: 'rumah_ruangtamu', label: 'Dapur / Kamar mandi', required: true, type: 'house' },
-    { name: 'rumah_kamar', label: 'Kamar Tidur', required: true, type: 'house' },
+    { name: 'rapor', label: 'Dokumen Nilai Rapot Semester 3–5' },
+    { name: 'sktm', label: 'Surat Keterangan Tidak Mampu (SKTM)' },
+    { name: 'ss_ig', label: 'Screenshot Follow IG @smktibazma' },
+    { name: 'kk', label: 'Kartu Keluarga (KK)' },
+    { name: 'foto', label: 'Pas Foto (Berwarna) 3x4 (terbaru dalam 3 bulan terakhir)' },
+    { name: 'kip', label: 'Sertakan Bukti KIP', optional: true },
+    { name: 'bpjs', label: 'Scan / Foto Kartu BPJS atau KIS' },
+    { name: 'rekomendasi_surat', label: 'Upload Surat Rekomendasi' },
+    { name: 'tagihan_listrik', label: 'Upload Bukti Pembayaran Listrik' },
+    { name: 'reels', label: 'Upload Bukti Posting Video Perkenalan Instagram' },
+    { name: 'rumah_depan', label: 'Rumah Tampak Depan' },
+    { name: 'rumah_ruangtamu', label: 'Rumah bagian Dapur / Kamar mandi' },
+    { name: 'rumah_kamar', label: 'Kamar Tidur' },
   ];
 
   const housePhotoTypes = [
@@ -73,8 +68,6 @@ const PageFormUpload: React.FC = () => {
         });
 
         setFiles(loadedFiles);
-        setHousePhotos(loadedHouse);
-        setHousePreviews(loadedPreviews);
       } catch (err) {
         console.log('Gagal mengambil data berkas');
       }
@@ -82,9 +75,6 @@ const PageFormUpload: React.FC = () => {
 
     fetchData();
   }, []);
-  const rumahDepanRef = useRef<HTMLInputElement>(null);
-  const ruangTamuRef = useRef<HTMLInputElement>(null);
-  const kamarRef = useRef<HTMLInputElement>(null);
 
   const compressPDF = async (file: File, maxSizeMB = 1): Promise<File> => {
     const buffer = new Uint8Array(await file.arrayBuffer());
@@ -218,11 +208,6 @@ const PageFormUpload: React.FC = () => {
 
     const form = new FormData();
     // 🔥 ambil file langsung dari input, bukan dari state
-    requiredFiles.forEach((f) => {
-      if (files[f.name] instanceof File) {
-        form.append(f.name, files[f.name] as File);
-      }
-    });
 
     form.append('user_id', user_id);
 
@@ -235,26 +220,23 @@ const PageFormUpload: React.FC = () => {
       }
     });
 
-    Object.keys(housePhotos).forEach((key) => {
-      const value = housePhotos[key];
-
-      if (value instanceof File) {
-        form.append(key, value);
-      } else if (value && value.name) {
-        // kirim nama lama agar backend tidak menghapus
-        form.append(key, value.name);
-      } else {
-        // jika kosong, kirim string kosong
-        form.append(key, '');
+    Object.keys(files).forEach((key) => {
+      if (files[key] instanceof File) {
+        form.append(key, files[key] as File);
+        hasFile = true;
       }
     });
 
-    if (!hasFile) {
-      setIsLoading(false); // ❗ STOP LOADING
+    const wajibDiisi = requiredFiles.filter((f) => !f.optional).map((f) => f.name);
+
+    const hasRequiredFile = wajibDiisi.some((name) => files[name] instanceof File);
+
+    if (!hasRequiredFile) {
+      setIsLoading(false);
       Swal.fire({
         icon: 'warning',
-        title: 'Tidak ada perubahan!',
-        text: 'Upload minimal 1 file.',
+        title: 'Berkas belum lengkap',
+        text: 'Mohon upload minimal satu berkas wajib.',
       });
       return;
     }
@@ -262,18 +244,6 @@ const PageFormUpload: React.FC = () => {
     const url = isUpdate ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
 
     const method = isUpdate ? 'PUT' : 'POST';
-    for (const f of requiredFiles) {
-      if (!f.required) continue;
-
-      if (!(files[f.name] instanceof File)) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Berkas belum lengkap',
-          text: `${f.label} wajib diupload`,
-        });
-        return;
-      }
-    }
 
     try {
       const res = await fetch(url, {
@@ -282,39 +252,18 @@ const PageFormUpload: React.FC = () => {
       });
 
       const data = await res.json();
-      setIsLoading(false);
 
-      // 🔴 VALIDASI BACKEND (400 / 422)
-      if (res.status === 400 || res.status === 422) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Data belum lengkap',
-          text: data.message || 'Periksa kembali berkas yang diupload.',
-        });
-        return;
-      }
+      setIsLoading(false); // 🔥 MATIKAN LOADING
 
-      // 🔴 AUTH / USER ERROR
-      if (res.status === 401 || res.status === 403) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Akses ditolak',
-          text: 'Silakan login ulang.',
-        });
-        return;
-      }
-
-      // 🔴 SERVER ERROR
       if (!res.ok) {
         Swal.fire({
           icon: 'error',
-          title: 'Server Bermasalah',
-          text: 'Terjadi kesalahan di server. Coba lagi nanti.',
+          title: 'Gagal!',
+          text: data.message,
         });
         return;
       }
 
-      // ✅ SUKSES
       Swal.fire({
         icon: 'success',
         title: isUpdate ? 'Berkas diperbarui!' : 'Berkas tersimpan!',
@@ -322,12 +271,12 @@ const PageFormUpload: React.FC = () => {
       }).then(() => {
         router.push('/page-pendaftaran/page-aturan');
       });
-    } catch (error) {
+    } catch (err) {
       setIsLoading(false);
       Swal.fire({
         icon: 'error',
-        title: 'Koneksi Bermasalah',
-        text: 'Tidak bisa terhubung ke server. Periksa internet Anda.',
+        title: 'Server Error',
+        text: 'Tidak dapat menghubungi server.',
       });
     }
   };
@@ -406,31 +355,25 @@ const PageFormUpload: React.FC = () => {
 
         {/* Upload Dokumen */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 mt-8">
-          {requiredFiles
-            .filter((f) => f.type === 'file')
-            .map((f) => (
-              <div key={f.name}>
-                {renderButton(f.label, f.name)}
-                {!f.required && <p className="text-xs text-gray-500">*Opsional</p>}
-              </div>
-            ))}
+          {requiredFiles.map((f) => (
+            <div key={f.name} className={f.name === 'tagihan_listrik' ? 'sm:col-span-2' : ''}>
+              <div className="w-full">{renderButton(f.label, f.name)}</div>
+            </div>
+          ))}
         </div>
 
         {/* Upload Foto Rumah */}
         <div className="mb-6 mt-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {requiredFiles
-              .filter((f) => f.type === 'house')
-              .map((f) => (
-                <div key={f.name} className="flex flex-col gap-3">
-                  <div className="border rounded-xl overflow-hidden">
-                    <div className="bg-gray-100 text-center text-sm font-semibold py-2">Contoh: {f.label}</div>
-                    <img src={f.name === 'rumah_depan' ? '/tampakdepan.jpeg' : f.name === 'rumah_ruangtamu' ? '/dapur.jpeg' : '/kamar.jpeg'} className="h-56 w-full object-cover" />
-                  </div>
-
-                  {renderButton(f.label, f.name)}
+            {housePhotoTypes.map((photo) => (
+              <div key={photo.name} className="flex flex-col gap-4">
+                {/* Contoh Foto */}
+                <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+                  <div className="bg-gray-50 text-center py-2 font-semibold text-sm text-[#1E3A8A] border-b">Contoh: {photo.label}</div>
+                  <img src={photo.example} alt={`Contoh ${photo.label}`} className="w-full h-56 sm:h-64 object-cover rounded-lg" />
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
         </div>
 

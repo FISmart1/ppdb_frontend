@@ -105,8 +105,8 @@ export function DashboardLayout() {
   // ganti jika perlu
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_logged_in');
-    localStorage.removeItem('admin_username');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     router.push('/');
   };
 
