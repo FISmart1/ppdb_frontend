@@ -213,12 +213,6 @@ const PageFormUpload: React.FC = () => {
 
     let hasFile = false;
 
-    Object.keys(files).forEach((key) => {
-      if (files[key] instanceof File) {
-        hasFile = true;
-        form.append(key, files[key] as File);
-      }
-    });
 
     Object.keys(files).forEach((key) => {
       if (files[key] instanceof File) {
@@ -241,9 +235,12 @@ const PageFormUpload: React.FC = () => {
       return;
     }
 
-    const url = isUpdate ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas/${user_id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
+    const url = `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-berkas`;
 
-    const method = isUpdate ? 'PUT' : 'POST';
+
+    const method = 'POST';
+
+form.append('is_update', isUpdate ? '1' : '0');
 
     try {
       const res = await fetch(url, {
