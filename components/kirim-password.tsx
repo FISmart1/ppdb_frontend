@@ -21,7 +21,7 @@ export default function SendPassword() {
     }
 
     try {
-      const res = await fetch("http://31.97.187.114:5000/api/auth/forgot", {
+      const res = await fetch("https://backend_spmb.smktibazma.sch.id/api/auth/request-reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
