@@ -174,16 +174,13 @@ const PageFormPribadi: React.FC = () => {
   const method = isEdit ? 'PUT' : 'POST';
 
   const res = await fetch(url, {
-  method,
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('token')}`, // 🔐 token
-  },
-  body: JSON.stringify({
-    ...formData, // ✅ HANYA DATA FORM
-  }),
-});
-
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: user.id,
+      ...formData,
+    }),
+  });
 
   const data = await res.json();
 
