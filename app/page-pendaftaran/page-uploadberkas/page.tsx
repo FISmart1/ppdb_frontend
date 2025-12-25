@@ -146,11 +146,11 @@ const PageFormUpload: React.FC = () => {
     }
 
     // HARD LIMIT sebelum kompres (misal max 4MB)
-    if (!validateSize(file, 4)) {
+    if (!validateSize(file, 2)) {
       Swal.fire({
         icon: 'error',
         title: 'Ukuran File Terlalu Besar!',
-        text: 'Ukuran maksimal file adalah 4MB sebelum dikompres.',
+        text: 'Ukuran maksimal file adalah kurang dari 2MB sebelum dikompres.',
         confirmButtonColor: '#1E3A8A',
       });
       return;
