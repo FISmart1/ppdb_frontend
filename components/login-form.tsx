@@ -135,6 +135,15 @@ export default function LoginForm() {
       >
         Masuk
       </button>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => router.push("/register-form")}
+          className="font-semibold text-[#1d2b6f] hover:underline"
+        >
+          Buat akun disini
+        </button>
+      </div>
     </form>
   );
 }

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 
 export default function PageRegister() {
   const router = useRouter();
-  router.replace("/"); 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#1d2b6f] px-4">
       <div className="bg-white rounded-2xl shadow-lg flex flex-col md:flex-row w-full max-w-5xl overflow-hidden">
