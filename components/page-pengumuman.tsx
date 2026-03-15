@@ -5,6 +5,7 @@ import { CheckCircle, Clock, XCircle } from "lucide-react";
 
 export default function PagePengumuman() {
   const [data, setData] = useState<any>(null);
+  const [nama, setNama] = useState("");
   const [loading, setLoading] = useState(true);
 
   const stages = [
@@ -25,10 +26,13 @@ export default function PagePengumuman() {
       return;
     }
 
-    fetch(`https://backend_spmb.smktibazma.sch.id/api/pengumuman/${user.id}`)
-      .then((res) => res.json())
-      .then((res) => {
-        setData(res);
+    Promise.all([
+      fetch(`https://backend_spmb.smktibazma.sch.id/api/pengumuman/${user.id}`).then(res => res.json()),
+      fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi/${user.id}`).then(res => res.json())
+    ])
+      .then(([pengumuman, biodata]) => {
+        setData(pengumuman);
+        setNama(biodata.fullName);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -42,10 +46,10 @@ export default function PagePengumuman() {
       <div className="text-center mt-20">
         <XCircle className="w-16 h-16 text-red-500 mx-auto" />
         <h2 className="text-xl font-bold mt-4">Belum Ada Pengumuman</h2>
+        <p className="text-gray-600 mt-2">{nama}</p>
       </div>
     );
 
-  // === CARI STATUS AKHIR ===
   let lastStage = null;
 
   for (let s of stages) {
@@ -54,7 +58,6 @@ export default function PagePengumuman() {
     }
   }
 
-  // Jika semua pending
   if (!lastStage)
     return (
       <div className="text-center mt-20">
@@ -62,36 +65,35 @@ export default function PagePengumuman() {
         <h2 className="text-2xl font-bold text-[#1E3A8A] mt-3">
           Berkas Sedang Diverifikasi
         </h2>
+        <p className="text-gray-700 font-semibold mt-2">{nama}</p>
         <p className="text-gray-600 mt-2">
           Mohon menunggu hasil seleksi dari panitia.
         </p>
       </div>
     );
 
-  // === STATUS TIDAK LOLOS ===
   if (lastStage.status === "tidak")
     return (
       <div className="text-center mt-20">
         <XCircle className="w-20 h-20 text-red-500 mx-auto" />
         <h1 className="text-3xl font-bold text-red-600 mt-4">
-          Maaf, Anda Tidak Lolos {lastStage.text}
+          Mohon Maaf {nama}, belum dapat lolos di tahap {lastStage.text}
         </h1>
         <p className="text-gray-600 mt-2">
-          Tetap semangat, masih banyak kesempatan baik lainnya.
+          Tetap semangat jangan menyerah, masih banyak kesempatan baik lainnya.
         </p>
       </div>
     );
 
-  // === STATUS LOLOS ===
   if (lastStage.status === "ya")
     return (
       <div className="text-center mt-20">
         <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
         <h1 className="text-3xl font-bold text-green-600 mt-4">
-          Selamat! Anda Lolos {lastStage.text}
+          Selamat {nama}! Anda Lolos {lastStage.text}
         </h1>
         <p className="text-gray-700 mt-2">
-          Silakan mengikuti tahap selanjutnya.
+          Nantikan pengumuman berikutnya untuk tahap selanjutnya. Semangat berjuang mengalahkan banyak orang, jangan lupa berusaha dan terus berdo'a
         </p>
       </div>
     );

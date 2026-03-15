@@ -120,8 +120,8 @@ export default function PagePendaftaran() {
           </div>
 
           {status === 'none' && (
-            <button onClick={() => router.push('/page-pendaftaran')} className="bg-white text-[#1E3A8A] font-semibold px-6 py-2 rounded-full hover:bg-gray-100 transition">
-              Daftar Sekarang →
+            <button className="bg-white text-[#1E3A8A] font-semibold px-6 py-2 rounded-full hover:bg-gray-100 transition">
+              Pendaftaran ditutup →
             </button>
           )}
 
@@ -136,10 +136,10 @@ export default function PagePendaftaran() {
 
         {/* Konten utama */}
         <div className="relative z-10">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#1E3A8A] mb-4 tracking-tight">Ikuti Langkah-langkah Pendaftaran SPMB</h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#1E3A8A] mb-4 tracking-tight">SPMB 2026-2027 Resmi ditutup</h2>
 
           <p className="text-gray-600 max-w-2xl mx-auto mb-8 text-sm md:text-base leading-relaxed">
-            Proses pendaftaran di <b>SMK TI Bazma</b> dibuat mudah, cepat, dan transparan. Ikuti setiap tahap di bawah ini dan raih kesempatan menjadi bagian dari generasi teknologi masa depan!
+            Terima kasih kepada calon peserta yang telah mendaftar di <b>SMK TI Bazma</b>, semoga selalu dilancarkan disetiap tahapannya. dan Mohon maaf kepada calon peserta yang belum dapat mendaftarkan dirinya, semoga takdir membawa kejalan yang lebih baik
           </p>
 
           {/* Garis hias di bawah teks */}
@@ -257,7 +257,7 @@ export default function PagePendaftaran() {
           {/* Desktop */}
           <div className="hidden md:flex relative justify-between items-start">
             {steps.map((step, idx) => {
-              const isActive = idx <= activeStep;
+              const isActive = idx === 3;
               return (
                 <div key={idx} className="flex flex-col items-center text-center relative flex-1">
                   {idx !== steps.length - 1 && (
@@ -283,7 +283,7 @@ export default function PagePendaftaran() {
           {/* Versi mobile: grid 2 kolom */}
           <div className="grid grid-cols-2 gap-6 md:hidden place-items-center">
             {steps.map((step, idx) => {
-              const isActive = idx === 0;
+              const isActive = idx === 3;
               const isLastOdd = steps.length % 2 !== 0 && idx === steps.length - 1; // ganjil & elemen terakhir
 
               return (

@@ -699,7 +699,7 @@ export function DashboardLayout() {
                         <button onClick={() => setShowModal(false)} className="px-6 py-2 text-[#1E3A8A] rounded-full cursor-pointer transition">
                           Saya Mengerti
                         </button>
-                        <a href='/page-pendaftaran' className="px-6 py-2 bg-[#1E3A8A] text-white rounded-full hover:bg-[#162c6e] transition">
+                        <a className="px-6 py-2 bg-[#1E3A8A] text-white rounded-full hover:bg-[#162c6e] transition">
                           Daftar Sekarag
                         </a>
                       </div>
@@ -714,7 +714,7 @@ export function DashboardLayout() {
                   {/* Versi desktop: deretan lurus */}
                   <div className="hidden md:flex relative justify-between items-start">
                     {steps.map((step, idx) => {
-                      const isActive = idx === 0;
+                      const isActive = idx === 3;
                       return (
                         <div key={idx} className="flex flex-col items-center text-center relative flex-1">
                           {/* Garis penghubung antar step */}
@@ -744,7 +744,7 @@ export function DashboardLayout() {
                   {/* Versi mobile: grid 2 kolom */}
                   <div className="grid grid-cols-2 gap-6 md:hidden place-items-center">
                     {steps.map((step, idx) => {
-                      const isActive = idx === 0;
+                      const isActive = idx === 3;
                       const isLastOdd = steps.length % 2 !== 0 && idx === steps.length - 1; // ganjil & elemen terakhir
 
                       return (
@@ -775,7 +775,7 @@ export function DashboardLayout() {
                       if (isFormComplete) {
                         router.push('/riwayat-lamaran'); // 🔥 kalau sudah complete
                       } else {
-                        router.push('/page-pendaftaran'); // 🔥 kalau belum complete
+                        router.push('/dashboard'); // 🔥 kalau belum complete
                       }
                     }}
                     disabled={loadingCheck}
@@ -783,7 +783,7 @@ export function DashboardLayout() {
     ${isFormComplete ? 'bg-green-400 text-gray-200' : 'bg-[#1E3A8A] text-white hover:bg-[#162d66]'}
   `}
                   >
-                    {loadingCheck ? 'Memeriksa...' : isFormComplete ? 'Pendaftaran sukses — klik untuk melihat!' : 'Daftar Sekarang!'}
+                    {loadingCheck ? 'Memeriksa...' : isFormComplete ? 'Pendaftaran sukses — klik untuk melihat!' : 'Pendaftaran ditutup'}
                   </button>
                 </div>
                 <div className="mt-4 border-b border-gray-300"></div>

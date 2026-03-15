@@ -40,27 +40,27 @@ const PageFormPribadi: React.FC = () => {
   });
 
   useEffect(() => {
-      setTimeout(() => {
-        const token = localStorage.getItem("token");
-  
-        if (!token) {
-          router.replace("/"); 
-          return;
-        }
-  
-        setIsLoading(false);
-      }, 30);
-    }, []); // ← FIX
+    setTimeout(() => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        router.replace('/');
+        return;
+      }
+
+      setIsLoading(false);
+    }, 30);
+  }, []); // ← FIX
 
   // ====== GET DATA (prefill jika sudah ada) ======
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user?.id) return;
 
-    if (user.validasi_pendaftaran === "sudah") {
-    router.replace("/dashboard");
-    return;
-  }
+    if (user.validasi_pendaftaran === 'sudah') {
+      router.replace('/dashboard');
+      return;
+    }
 
     const fetchData = async () => {
       const res = await fetch(`https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi/${user.id}`);
@@ -145,59 +145,56 @@ const PageFormPribadi: React.FC = () => {
 
   // ====== SUBMIT (POST or UPDATE) ======
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const emptyFields = validateForm();
-  if (emptyFields.length > 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Kolom Belum Diisi!',
-      html: `
+    const emptyFields = validateForm();
+    if (emptyFields.length > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Kolom Belum Diisi!',
+        html: `
         <p class="mb-2">Lengkapi dulu kolom berikut:</p>
         <ul style="text-align:left; display:inline-block;">
           ${emptyFields.map((f) => `<li>• ${f}</li>`).join('')}
         </ul>
       `,
-      confirmButtonColor: '#1E3A8A',
+        confirmButtonColor: '#1E3A8A',
+      });
+      return;
+    }
+
+    setIsLoading(true); // 🔵 START LOADING
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    const url = isEdit ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi/${user.id}` : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi`;
+
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: user.id,
+        ...formData,
+      }),
     });
-    return;
-  }
 
-  setIsLoading(true); // 🔵 START LOADING
+    const data = await res.json();
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setIsLoading(false); // 🔵 STOP LOADING
 
-  const url = isEdit
-    ? `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi/${user.id}`
-    : `https://backend_spmb.smktibazma.sch.id/api/pendaftaran/form-pribadi`;
-
-  const method = isEdit ? 'PUT' : 'POST';
-
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      user_id: user.id,
-      ...formData,
-    }),
-  });
-
-  const data = await res.json();
-
-  setIsLoading(false); // 🔵 STOP LOADING
-
-  if (res.ok) {
-    Swal.fire({
-      icon: 'success',
-      title: isEdit ? 'Data berhasil diperbarui!' : 'Data tersimpan!',
-      text: 'Lanjutkan ke tahap selanjutnya.',
-      confirmButtonColor: '#1E3A8A',
-    }).then(() => router.push('/page-pendaftaran/page-prestasi'));
-  } else {
-    Swal.fire('Gagal!', data.message, 'error');
-  }
-};
-
+    if (res.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: isEdit ? 'Data berhasil diperbarui!' : 'Data tersimpan!',
+        text: 'Lanjutkan ke tahap selanjutnya.',
+        confirmButtonColor: '#1E3A8A',
+      }).then(() => router.push('/page-pendaftaran/page-prestasi'));
+    } else {
+      Swal.fire('Gagal!', data.message, 'error');
+    }
+  };
 
   const inputClass = 'w-full border border-gray-300 rounded-full px-4 py-3 text-sm sm:text-base focus:ring-2 focus:ring-[#1E3A8A] focus:outline-none bg-white placeholder:text-gray-500';
 
@@ -450,14 +447,11 @@ const PageFormPribadi: React.FC = () => {
         </form>
       </div>
       {isLoading && (
-  <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
-    <div className="w-20 h-20 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-    <p className="text-white font-semibold mt-4 text-lg tracking-wide animate__animated animate__fadeIn animate__delay-1s">
-      Menyimpan data...
-    </p>
-  </div>
-)}
-
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[9999] flex flex-col items-center justify-center animate__animated animate__fadeIn">
+          <div className="w-20 h-20 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white font-semibold mt-4 text-lg tracking-wide animate__animated animate__fadeIn animate__delay-1s">Menyimpan data...</p>
+        </div>
+      )}
     </>
   );
 };
